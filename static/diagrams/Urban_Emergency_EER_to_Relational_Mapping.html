@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EER-to-Relational Table Conversion - Urban Emergency Response System</title>
+<style>
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #ffffff;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  svg {
+    display: block;
+    margin: 0 auto;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    border-radius: 8px;
+  }
+  .title-text { font-size: 24px; font-weight: 800; fill: #0F172A; text-anchor: middle; }
+  .subtitle-text { font-size: 13px; font-weight: 600; fill: #475569; text-anchor: middle; }
+  
+  /* Table Container */
+  .tbl-box { fill: #FFFFFF; stroke: #0F172A; stroke-width: 2; rx: 6; ry: 6; }
+  .tbl-header { fill: #1E293B; rx: 5; ry: 5; }
+  .tbl-name { font-size: 13.5px; font-weight: 800; fill: #FFFFFF; text-anchor: middle; dominant-baseline: middle; font-family: monospace; }
+  .tbl-badge { font-size: 10px; font-weight: 700; fill: #94A3B8; text-anchor: end; dominant-baseline: middle; }
+  
+  /* Attributes and Keys */
+  .attr-text { font-size: 11.5px; font-weight: 600; fill: #334155; font-family: monospace; }
+  .pk-pill { fill: #FEF08A; stroke: #CA8A04; stroke-width: 1.2; rx: 3; ry: 3; }
+  .pk-label { font-size: 11px; font-weight: 800; fill: #854D0E; font-family: monospace; }
+  
+  .fk-pill { fill: #DBEAFE; stroke: #3B82F6; stroke-width: 1.2; rx: 3; ry: 3; }
+  .fk-label { font-size: 11px; font-weight: 800; fill: #1E40AF; font-family: monospace; }
+  
+  /* FK Pointer Lines & Markers */
+  .fk-arrow { stroke: #2563EB; stroke-width: 1.8; fill: none; marker-end: url(#fk-arrowhead); stroke-linecap: round; }
+  .fk-arrow-purple { stroke: #9333EA; stroke-width: 1.8; fill: none; marker-end: url(#fk-arrowhead-purple); stroke-linecap: round; }
+  
+  /* Rules Card */
+  .rule-card { fill: #F8FAFC; stroke: #CBD5E1; stroke-width: 1.5; rx: 6; ry: 6; }
+  .rule-title { font-size: 12px; font-weight: 800; fill: #0F172A; }
+  .rule-desc { font-size: 11px; font-weight: 500; fill: #475569; }
+</style>
+</head>
+<body>
+
+<svg width="2200" height="1550" viewBox="0 0 2200 1550" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <!-- Arrowhead markers for Foreign Key Referential Integrity links -->
+    <marker id="fk-arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#2563EB" />
+    </marker>
+    <marker id="fk-arrowhead-purple" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#9333EA" />
+    </marker>
+  </defs>
+
+  <!-- Title Header -->
+  <text x="1100" y="50" class="title-text">EER-TO-RELATIONAL TABLE CONVERSION & SCHEMA SPECIFICATION</text>
+  <text x="1100" y="78" class="subtitle-text">Formal Mapping Rules, Primary Keys (PK), Foreign Keys (FK), and Referential Integrity Constraints (3NF Schema)</text>
+
+  <!-- ===================================================================== -->
+  <!-- 4 MAPPING RULES SUMMARY BANNER (Top) -->
+  <!-- ===================================================================== -->
+  <g transform="translate(60, 105)">
+    <!-- Rule 1 -->
+    <rect x="0" y="0" width="500" height="65" class="rule-card"/>
+    <text x="15" y="25" class="rule-title" fill="#1D4ED8">(1) Strong Entity Mapping (Rule 1)</text>
+    <text x="15" y="45" class="rule-desc">Regular entities map directly to base relations: declared PKs</text>
+    <text x="15" y="58" class="rule-desc font-mono" fill="#2563EB">PATIENT, LOCATION, EMERGENCY_TYPE, AMBULANCE, HOSPITAL</text>
+
+    <!-- Rule 2 -->
+    <rect x="525" y="0" width="500" height="65" class="rule-card"/>
+    <text x="540" y="25" class="rule-title" fill="#059669">(2) 1:N Relationship Mapping (Rule 2)</text>
+    <text x="540" y="45" class="rule-desc">Inject PK of 1-side entity as Foreign Key into N-side child</text>
+    <text x="540" y="58" class="rule-desc font-mono" fill="#059669">hospital_id &rarr; DEPARTMENT, dept_id &rarr; BED, amb_id &rarr; EQUIPMENT</text>
+
+    <!-- Rule 3 -->
+    <rect x="1050" y="0" width="500" height="65" class="rule-card"/>
+    <text x="1065" y="25" class="rule-title" fill="#7C3AED">(3) Ternary Associative Mapping (Rule 3)</text>
+    <text x="1065" y="45" class="rule-desc">Ternary dispatch between Emergency, Ambulance & Hospital</text>
+    <text x="1065" y="58" class="rule-desc font-mono" fill="#7C3AED">Mapped to associative relation: RESOURCE_ALLOCATION</text>
+
+    <!-- Rule 4 -->
+    <rect x="1575" y="0" width="505" height="65" class="rule-card"/>
+    <text x="1590" y="25" class="rule-title" fill="#DC2626">(4) Trigger-Driven Audit Mapping (Rule 4)</text>
+    <text x="1590" y="45" class="rule-desc">1:N Logs relationship mapped to audit trail table</text>
+    <text x="1590" y="58" class="rule-desc font-mono" fill="#DC2626">Populated by AFTER UPDATE OF status triggers on EMERGENCY</text>
+  </g>
+
+  <!-- ===================================================================== -->
+  <!-- ROW 1 OF TABLES: PATIENT, LOCATION, EMERGENCY_TYPE -->
+  <!-- ===================================================================== -->
+  <!-- Table: PATIENT -->
+  <g id="tbl-patient" transform="translate(60, 200)">
+    <rect x="0" y="0" width="480" height="180" class="tbl-box"/>
+    <rect x="0" y="0" width="480" height="36" class="tbl-header"/>
+    <text x="240" y="22" class="tbl-name">PATIENT (Rule 1)</text>
+    
+    <!-- Columns -->
+    <g transform="translate(15, 55)">
+      <rect x="0" y="-12" width="90" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">patient_id</text>
+      <text x="100" y="2" class="attr-text">[PK] INTEGER AUTOINCREMENT</text>
+    </g>
+    <text x="15" y="85" class="attr-text">name : TEXT NOT NULL</text>
+    <text x="15" y="105" class="attr-text">age : INTEGER CHECK(age > 0 AND age &le; 125)</text>
+    <text x="15" y="125" class="attr-text">gender : TEXT CHECK(IN 'Male','Female','Other')</text>
+    <text x="15" y="145" class="attr-text">contact_phone : TEXT NOT NULL</text>
+    <text x="15" y="165" class="attr-text">blood_group, triage_medical_notes : TEXT</text>
+  </g>
+
+  <!-- Table: LOCATION -->
+  <g id="tbl-location" transform="translate(580, 200)">
+    <rect x="0" y="0" width="480" height="180" class="tbl-box"/>
+    <rect x="0" y="0" width="480" height="36" class="tbl-header"/>
+    <text x="240" y="22" class="tbl-name">LOCATION (Rule 1 - 3NF)</text>
+    
+    <!-- Columns -->
+    <g transform="translate(15, 55)">
+      <rect x="0" y="-12" width="90" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">location_id</text>
+      <text x="100" y="2" class="attr-text">[PK] INTEGER AUTOINCREMENT</text>
+    </g>
+    <text x="15" y="85" class="attr-text">address_line : TEXT NOT NULL</text>
+    <text x="15" y="105" class="attr-text">zone_area : TEXT NOT NULL (e.g. Sector 62)</text>
+    <text x="15" y="125" class="attr-text">landmark : TEXT</text>
+    <text x="15" y="145" class="attr-text">postal_code : TEXT NOT NULL</text>
+    <text x="15" y="165" class="attr-text">city_district : TEXT NOT NULL DEFAULT 'Noida'</text>
+  </g>
+
+  <!-- Table: EMERGENCY_TYPE -->
+  <g id="tbl-type" transform="translate(1100, 200)">
+    <rect x="0" y="0" width="460" height="180" class="tbl-box"/>
+    <rect x="0" y="0" width="460" height="36" class="tbl-header"/>
+    <text x="230" y="22" class="tbl-name">EMERGENCY_TYPE (Rule 1)</text>
+    
+    <!-- Columns -->
+    <g transform="translate(15, 55)">
+      <rect x="0" y="-12" width="75" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">type_id</text>
+      <text x="85" y="2" class="attr-text">[PK] INTEGER AUTOINCREMENT</text>
+    </g>
+    <text x="15" y="85" class="attr-text">type_name : TEXT UNIQUE NOT NULL</text>
+    <text x="15" y="105" class="attr-text">description : TEXT</text>
+    <text x="15" y="125" class="attr-text">severity_default : INTEGER CHECK(1 to 5)</text>
+    <text x="15" y="145" class="attr-text">priority_rank : TEXT (Low,Med,High,Critical)</text>
+  </g>
+
+  <!-- Table: EMERGENCY_STATUS_HISTORY -->
+  <g id="tbl-history" transform="translate(1600, 200)">
+    <rect x="0" y="0" width="540" height="180" class="tbl-box" style="stroke:#DC2626; stroke-width:2.2;"/>
+    <rect x="0" y="0" width="540" height="36" class="tbl-header" style="fill:#991B1B;"/>
+    <text x="270" y="22" class="tbl-name">EMERGENCY_STATUS_HISTORY (Rule 4)</text>
+    
+    <!-- Columns -->
+    <g transform="translate(15, 55)">
+      <rect x="0" y="-12" width="85" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">history_id</text>
+      <text x="95" y="2" class="attr-text">[PK] INTEGER AUTOINCREMENT</text>
+    </g>
+    <g transform="translate(15, 80)">
+      <rect x="0" y="-12" width="115" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">emergency_id</text>
+      <text x="125" y="2" class="attr-text">[FK &rarr; EMERGENCY] RESTRICT</text>
+    </g>
+    <text x="15" y="110" class="attr-text">status_state : TEXT NOT NULL</text>
+    <text x="15" y="130" class="attr-text">changed_at : TIMESTAMP DEFAULT CURRENT_TIMESTAMP</text>
+    <text x="15" y="150" class="attr-text">updated_by : TEXT DEFAULT 'SYSTEM_TRIGGER'</text>
+    <text x="15" y="170" class="attr-text">remarks : TEXT (Logs state transitions automatically)</text>
+  </g>
+
+  <!-- ===================================================================== -->
+  <!-- ROW 2: CENTRAL EMERGENCY RELATION (Rule 2) -->
+  <!-- ===================================================================== -->
+  <g id="tbl-emergency" transform="translate(480, 470)">
+    <rect x="0" y="0" width="680" height="200" class="tbl-box" style="stroke:#2563EB; stroke-width:2.5;"/>
+    <rect x="0" y="0" width="680" height="38" class="tbl-header" style="fill:#1E3A8A;"/>
+    <text x="340" y="23" class="tbl-name">EMERGENCY (Rule 2: 1:N FK Insertion from Patient, Type, Location)</text>
+
+    <!-- PK -->
+    <g transform="translate(20, 60)">
+      <rect x="0" y="-12" width="115" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">emergency_id</text>
+      <text x="125" y="2" class="attr-text">[PK] PRIMARY KEY AUTOINCREMENT</text>
+    </g>
+
+    <!-- FKs -->
+    <g transform="translate(20, 90)">
+      <rect x="0" y="-12" width="90" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">patient_id</text>
+      <text x="100" y="2" class="attr-text">[FK &rarr; PATIENT(patient_id)] ON DELETE RESTRICT</text>
+    </g>
+
+    <g transform="translate(20, 115)">
+      <rect x="0" y="-12" width="75" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">type_id</text>
+      <text x="85" y="2" class="attr-text">[FK &rarr; EMERGENCY_TYPE(type_id)] ON DELETE RESTRICT</text>
+    </g>
+
+    <g transform="translate(20, 140)">
+      <rect x="0" y="-12" width="95" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">location_id</text>
+      <text x="105" y="2" class="attr-text">[FK &rarr; LOCATION(location_id)] ON DELETE RESTRICT</text>
+    </g>
+
+    <text x="20" y="170" class="attr-text">reported_time : TIMESTAMP DEFAULT CURRENT_TIMESTAMP</text>
+    <text x="20" y="190" class="attr-text">severity : INTEGER CHECK(1-5) &bull; status : TEXT CHECK(Reported,Dispatched...)</text>
+  </g>
+
+  <!-- FK ARROWS from EMERGENCY to PATIENT, LOCATION, EMERGENCY_TYPE -->
+  <!-- Emergency -> Patient -->
+  <path d="M 500 560 L 300 560 L 300 380" class="fk-arrow"/>
+  <!-- Emergency -> Location -->
+  <path d="M 700 610 L 700 640 L 800 640 L 800 380" class="fk-arrow"/>
+  <!-- Emergency -> Emergency_Type -->
+  <path d="M 1160 585 L 1250 585 L 1250 380" class="fk-arrow"/>
+  <!-- History -> Emergency -->
+  <path d="M 1600 280 L 1160 280 L 1160 470" class="fk-arrow"/>
+
+  <!-- ===================================================================== -->
+  <!-- ROW 3: ASSOCIATIVE TERNARY RELATION (RESOURCE_ALLOCATION) -->
+  <!-- ===================================================================== -->
+  <g id="tbl-resource-allocation" transform="translate(480, 750)">
+    <rect x="0" y="0" width="680" height="210" class="tbl-box" style="stroke:#7C3AED; stroke-width:2.5; fill:#FAF5FF;"/>
+    <rect x="0" y="0" width="680" height="38" class="tbl-header" style="fill:#5B21B6;"/>
+    <text x="340" y="23" class="tbl-name">RESOURCE_ALLOCATION (Rule 3: Associative Ternary Relation)</text>
+
+    <!-- PK -->
+    <g transform="translate(20, 60)">
+      <rect x="0" y="-12" width="115" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">allocation_id</text>
+      <text x="125" y="2" class="attr-text">[PK] PRIMARY KEY AUTOINCREMENT</text>
+    </g>
+
+    <!-- Ternary FKs -->
+    <g transform="translate(20, 88)">
+      <rect x="0" y="-12" width="115" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">emergency_id</text>
+      <text x="125" y="2" class="attr-text">[FK &rarr; EMERGENCY(emergency_id)] ON DELETE RESTRICT</text>
+    </g>
+
+    <g transform="translate(20, 112)">
+      <rect x="0" y="-12" width="115" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">ambulance_id</text>
+      <text x="125" y="2" class="attr-text">[FK &rarr; AMBULANCE(ambulance_id)] ON DELETE RESTRICT</text>
+    </g>
+
+    <g transform="translate(20, 136)">
+      <rect x="0" y="-12" width="95" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">hospital_id</text>
+      <text x="105" y="2" class="attr-text">[FK &rarr; HOSPITAL(hospital_id)] ON DELETE RESTRICT</text>
+    </g>
+
+    <g transform="translate(20, 160)">
+      <rect x="0" y="-12" width="65" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">bed_id</text>
+      <text x="75" y="2" class="attr-text">[FK &rarr; BED(bed_id)] ON DELETE RESTRICT</text>
+    </g>
+
+    <text x="20" y="188" class="attr-text">dispatch_time : TIMESTAMP DEFAULT CURRENT_TIMESTAMP &bull; arrival_time : TIMESTAMP</text>
+    <text x="20" y="204" class="attr-text">status : TEXT CHECK(IN 'Dispatched','En-Route','Handover-Complete','Cancelled')</text>
+  </g>
+
+  <!-- FK Arrow from Resource_Allocation to Emergency -->
+  <path d="M 820 750 L 820 670" class="fk-arrow-purple"/>
+
+  <!-- ===================================================================== -->
+  <!-- ROW 4: AMBULANCE, EQUIPMENT, HOSPITAL, DEPARTMENT, BED, STAFF -->
+  <!-- ===================================================================== -->
+  <!-- Table: AMBULANCE -->
+  <g id="tbl-ambulance" transform="translate(60, 1040)">
+    <rect x="0" y="0" width="460" height="190" class="tbl-box"/>
+    <rect x="0" y="0" width="460" height="36" class="tbl-header"/>
+    <text x="230" y="22" class="tbl-name">AMBULANCE (Rule 1)</text>
+
+    <g transform="translate(15, 55)">
+      <rect x="0" y="-12" width="115" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">ambulance_id</text>
+      <text x="125" y="2" class="attr-text">[PK] INTEGER AUTOINCREMENT</text>
+    </g>
+    <text x="15" y="85" class="attr-text">vehicle_no : TEXT NOT NULL UNIQUE</text>
+    <text x="15" y="105" class="attr-text">type : TEXT CHECK(type IN ('BLS','ALS'))</text>
+    <text x="15" y="125" class="attr-text">operational_status : TEXT (Available, Dispatched...)</text>
+    <text x="15" y="145" class="attr-text">base_station : TEXT NOT NULL</text>
+  </g>
+
+  <!-- Table: EQUIPMENT -->
+  <g id="tbl-equipment" transform="translate(60, 1280)">
+    <rect x="0" y="0" width="460" height="170" class="tbl-box"/>
+    <rect x="0" y="0" width="460" height="36" class="tbl-header"/>
+    <text x="230" y="22" class="tbl-name">EQUIPMENT (Rule 2: Decoupled 1NF)</text>
+
+    <g transform="translate(15, 55)">
+      <rect x="0" y="-12" width="115" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">equipment_id</text>
+      <text x="125" y="2" class="attr-text">[PK] INTEGER AUTOINCREMENT</text>
+    </g>
+    <g transform="translate(15, 80)">
+      <rect x="0" y="-12" width="115" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">ambulance_id</text>
+      <text x="125" y="2" class="attr-text">[FK &rarr; AMBULANCE] CASCADE</text>
+    </g>
+    <text x="15" y="110" class="attr-text">equipment_name : TEXT NOT NULL</text>
+    <text x="15" y="130" class="attr-text">serial_no : TEXT UNIQUE NOT NULL</text>
+    <text x="15" y="150" class="attr-text">is_functional : INTEGER CHECK(0 or 1)</text>
+  </g>
+
+  <!-- Equipment -> Ambulance FK Arrow -->
+  <path d="M 230 1280 L 230 1230" class="fk-arrow"/>
+
+  <!-- Table: HOSPITAL -->
+  <g id="tbl-hospital" transform="translate(580, 1040)">
+    <rect x="0" y="0" width="460" height="190" class="tbl-box"/>
+    <rect x="0" y="0" width="460" height="36" class="tbl-header"/>
+    <text x="230" y="22" class="tbl-name">HOSPITAL (Rule 2: FK location_id)</text>
+
+    <g transform="translate(15, 55)">
+      <rect x="0" y="-12" width="95" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">hospital_id</text>
+      <text x="105" y="2" class="attr-text">[PK] INTEGER AUTOINCREMENT</text>
+    </g>
+    <g transform="translate(15, 80)">
+      <rect x="0" y="-12" width="95" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">location_id</text>
+      <text x="105" y="2" class="attr-text">[FK &rarr; LOCATION] RESTRICT</text>
+    </g>
+    <text x="15" y="110" class="attr-text">hospital_name : TEXT NOT NULL</text>
+    <text x="15" y="130" class="attr-text">contact_phone : TEXT NOT NULL</text>
+    <text x="15" y="150" class="attr-text">emergency_level : Level 1, Level 2, General</text>
+    <text x="15" y="170" class="attr-text">total_beds : INTEGER CHECK(total_beds &ge; 0)</text>
+  </g>
+
+  <!-- Table: DEPARTMENT -->
+  <g id="tbl-department" transform="translate(580, 1280)">
+    <rect x="0" y="0" width="460" height="170" class="tbl-box"/>
+    <rect x="0" y="0" width="460" height="36" class="tbl-header"/>
+    <text x="230" y="22" class="tbl-name">DEPARTMENT (Rule 2: 1:N)</text>
+
+    <g transform="translate(15, 55)">
+      <rect x="0" y="-12" width="75" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">dept_id</text>
+      <text x="85" y="2" class="attr-text">[PK] INTEGER AUTOINCREMENT</text>
+    </g>
+    <g transform="translate(15, 80)">
+      <rect x="0" y="-12" width="95" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">hospital_id</text>
+      <text x="105" y="2" class="attr-text">[FK &rarr; HOSPITAL] CASCADE</text>
+    </g>
+    <text x="15" y="110" class="attr-text">dept_name : TEXT NOT NULL</text>
+    <text x="15" y="130" class="attr-text">total_capacity : INTEGER CHECK(&ge; 0)</text>
+    <text x="15" y="150" class="attr-text">head_doctor, contact_ext : TEXT</text>
+  </g>
+
+  <!-- Department -> Hospital FK Arrow -->
+  <path d="M 750 1280 L 750 1230" class="fk-arrow"/>
+
+  <!-- Table: BED -->
+  <g id="tbl-bed" transform="translate(1100, 1040)">
+    <rect x="0" y="0" width="480" height="190" class="tbl-box"/>
+    <rect x="0" y="0" width="480" height="36" class="tbl-header"/>
+    <text x="240" y="22" class="tbl-name">BED (Rule 2: 1:N from Department)</text>
+
+    <g transform="translate(15, 55)">
+      <rect x="0" y="-12" width="65" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">bed_id</text>
+      <text x="75" y="2" class="attr-text">[PK] INTEGER AUTOINCREMENT</text>
+    </g>
+    <g transform="translate(15, 80)">
+      <rect x="0" y="-12" width="75" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">dept_id</text>
+      <text x="85" y="2" class="attr-text">[FK &rarr; DEPARTMENT] CASCADE</text>
+    </g>
+    <text x="15" y="110" class="attr-text">bed_number : TEXT NOT NULL</text>
+    <text x="15" y="130" class="attr-text">floor_no : INTEGER NOT NULL</text>
+    <text x="15" y="150" class="attr-text">bed_type : TEXT CHECK('ICU','General')</text>
+    <text x="15" y="170" class="attr-text">is_occupied : INTEGER CHECK(0 or 1)</text>
+    <text x="15" y="185" class="attr-text font-bold" fill="#7C3AED">UNIQUE(dept_id, bed_number)</text>
+  </g>
+
+  <!-- Bed -> Department FK Arrow -->
+  <path d="M 1100 1120 L 1060 1120 L 1060 1350 L 1040 1350" class="fk-arrow"/>
+
+  <!-- Table: STAFF -->
+  <g id="tbl-staff" transform="translate(1640, 1040)">
+    <rect x="0" y="0" width="500" height="210" class="tbl-box"/>
+    <rect x="0" y="0" width="500" height="36" class="tbl-header"/>
+    <text x="250" y="22" class="tbl-name">STAFF (Rule 2: Hospital / Ambulance)</text>
+
+    <g transform="translate(15, 55)">
+      <rect x="0" y="-12" width="75" height="20" class="pk-pill"/>
+      <text x="5" y="2" class="pk-label">staff_id</text>
+      <text x="85" y="2" class="attr-text">[PK] INTEGER AUTOINCREMENT</text>
+    </g>
+    <g transform="translate(15, 80)">
+      <rect x="0" y="-12" width="95" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">hospital_id</text>
+      <text x="105" y="2" class="attr-text">[FK &rarr; HOSPITAL] NULL ON DELETE</text>
+    </g>
+    <g transform="translate(15, 105)">
+      <rect x="0" y="-12" width="115" height="20" class="fk-pill"/>
+      <text x="5" y="2" class="fk-label">ambulance_id</text>
+      <text x="125" y="2" class="attr-text">[FK &rarr; AMBULANCE] NULL ON DELETE</text>
+    </g>
+    <text x="15" y="135" class="attr-text">full_name : TEXT NOT NULL</text>
+    <text x="15" y="155" class="attr-text">role_type : Doctor, Paramedic, Driver</text>
+    <text x="15" y="175" class="attr-text">license_no : TEXT UNIQUE NOT NULL</text>
+    <text x="15" y="195" class="attr-text">phone_no : TEXT NOT NULL</text>
+  </g>
+
+  <!-- Resource_Allocation Arrows to Ambulance and Hospital -->
+  <path d="M 500 870 L 300 870 L 300 1040" class="fk-arrow-purple"/>
+  <path d="M 780 960 L 780 1040" class="fk-arrow-purple"/>
+  <path d="M 1160 880 L 1300 880 L 1300 1040" class="fk-arrow-purple"/>
+
+</svg>
+
+</body>
+</html>

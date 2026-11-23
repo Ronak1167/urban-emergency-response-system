@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex justify-between items-center">
+        <div>
+            <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider flex items-center">
+                <i class="fa-solid fa-layer-group mr-1.5"></i> DBMS Concept Visualizer 2
+            </div>
+            <h1 class="text-xl font-bold text-slate-900 mt-0.5">Relational Normalization Visualizer (1NF &rarr; 2NF &rarr; 3NF)</h1>
+            <p class="text-xs text-slate-500 mt-1">
+                Visualizing functional dependencies, elimination of repeating groups, and resolution of transitive dependencies.
+            </p>
+        </div>
+        <a href="/concepts" class="text-xs text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Visualizer Hub
+        </a>
+    </div>
+
+    <!-- Interactive Stage Navigation Tabs -->
+    <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+        <button onclick="showStage('0nf')" id="tab-0nf" class="px-4 py-2 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Stage 0: Unnormalized Flat Record (0NF)
+        </button>
+        <button onclick="showStage('1nf')" id="tab-1nf" class="px-4 py-2 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Stage 1: First Normal Form (1NF)
+        </button>
+        <button onclick="showStage('2nf')" id="tab-2nf" class="px-4 py-2 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Stage 2: Second Normal Form (2NF)
+        </button>
+        <button onclick="showStage('3nf')" id="tab-3nf" class="px-4 py-2 rounded-lg text-xs font-bold transition bg-emerald-600 text-white">
+            Stage 3: Third Normal Form (3NF) - Final Model
+        </button>
+    </div>
+
+    <!-- Stage 0: 0NF Panel -->
+    <div id="panel-0nf" class="stage-panel hidden space-y-4">
+        <div class="bg-rose-50 border border-rose-200 p-4 rounded-xl text-xs text-rose-900">
+            <strong class="font-bold text-sm text-rose-950 block mb-1">0NF: Unnormalized Relation with Repeating Groups &amp; Anomalies</strong>
+            In 0NF, all emergency, hospital, ambulance, and equipment details are crammed into a single bloated relation with multi-valued repeating groups: <code>equipments: {"Ventilator", "Defibrillator", "Oxygen Kit"}</code>.
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto p-4">
+            <h4 class="text-xs font-bold text-slate-700 mb-2 font-mono">TABLE: UNNORMALIZED_EMERGENCY_RECORDS</h4>
+            <table class="w-full text-left text-xs text-slate-600 font-mono">
+                <thead class="bg-slate-100 text-slate-800 text-[11px]">
+                    <tr>
+                        <th class="p-2 border">CallID</th>
+                        <th class="p-2 border">PatientName</th>
+                        <th class="p-2 border">Hospital</th>
+                        <th class="p-2 border">HospitalAddress</th>
+                        <th class="p-2 border">City</th>
+                        <th class="p-2 border">Ambulance</th>
+                        <th class="p-2 border bg-rose-100 text-rose-900">Repeating Equipment Group</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="p-2 border font-bold">101</td>
+                        <td class="p-2 border">Aarav Sharma</td>
+                        <td class="p-2 border">Fortis Noida</td>
+                        <td class="p-2 border">Sector 62</td>
+                        <td class="p-2 border">Noida</td>
+                        <td class="p-2 border">UP-16-AM-1001</td>
+                        <td class="p-2 border bg-rose-50 text-rose-700 font-bold">{Ventilator, Defibrillator, ECG} (Non-Atomic!)</td>
+                    </tr>
+                    <tr>
+                        <td class="p-2 border font-bold">102</td>
+                        <td class="p-2 border">Pooja Verma</td>
+                        <td class="p-2 border">Jaypee Hospital</td>
+                        <td class="p-2 border">Sector 128</td>
+                        <td class="p-2 border">Noida</td>
+                        <td class="p-2 border">UP-16-AM-1002</td>
+                        <td class="p-2 border bg-rose-50 text-rose-700 font-bold">{Oxygen Kit, AED} (Non-Atomic!)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="mt-3 p-3 bg-slate-50 rounded-lg text-xs text-slate-500 space-y-1 font-sans">
+                <div><span class="font-bold text-rose-600">&times; Insertion Anomaly:</span> Cannot add a new piece of ambulance equipment unless an emergency call is reported.</div>
+                <div><span class="font-bold text-rose-600">&times; Update Anomaly:</span> Changing Fortis address requires updating hundreds of emergency rows.</div>
+                <div><span class="font-bold text-rose-600">&times; Deletion Anomaly:</span> Deleting an emergency call erases hospital contact records from the database.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 1: 1NF Panel -->
+    <div id="panel-1nf" class="stage-panel hidden space-y-4">
+        <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-xs text-blue-900">
+            <strong class="font-bold text-sm text-blue-950 block mb-1">1NF: Enforcing Atomic Domains &amp; Extracting Repeating Groups</strong>
+            <strong>Condition:</strong> All attribute values must be atomic.
+            <strong>Solution:</strong> The multi-valued equipment array is decoupled into an independent relation: <code>EQUIPMENT(equipment_id, ambulance_id, equipment_name, serial_no, is_functional)</code>.
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <h4 class="text-xs font-bold text-slate-900 mb-2 font-mono">1. AMBULANCE (Atomic Fields)</h4>
+                <div class="text-xs font-mono bg-slate-50 p-3 rounded text-slate-700 space-y-1">
+                    <div>ambulance_id [PK]</div>
+                    <div>vehicle_no (UNIQUE)</div>
+                    <div>type (BLS / ALS)</div>
+                    <div>operational_status</div>
+                    <div>base_station</div>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <h4 class="text-xs font-bold text-emerald-800 mb-2 font-mono">2. EQUIPMENT (Repeating Group Isolated)</h4>
+                <div class="text-xs font-mono bg-emerald-50 p-3 rounded text-emerald-900 space-y-1">
+                    <div>equipment_id [PK]</div>
+                    <div>ambulance_id [FK &rarr; AMBULANCE]</div>
+                    <div>equipment_name (Single atomic string)</div>
+                    <div>serial_no (UNIQUE)</div>
+                    <div>is_functional (Boolean)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 2: 2NF Panel -->
+    <div id="panel-2nf" class="stage-panel hidden space-y-4">
+        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl text-xs text-amber-900">
+            <strong class="font-bold text-sm text-amber-950 block mb-1">2NF: Elimination of Partial Key Dependencies</strong>
+            <strong>Condition:</strong> Must be in 1NF, and every non-prime attribute must depend on the <em>entire</em> candidate key (no partial dependencies on a subset of a composite key).
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-xs space-y-2">
+            <h4 class="font-bold text-slate-900">Surrogate Key Strategy &amp; Full Dependency Proof</h4>
+            <p class="text-slate-600 leading-relaxed">
+                In multi-entity associations (such as dispatch matching emergency, vehicle, and hospital), candidate keys are composite: <code>{emergency_id, ambulance_id, hospital_id}</code>. If patient name or hospital phone were stored in this table, they would depend only on <code>emergency_id</code> or <code>hospital_id</code> (partial dependency!).
+            </p>
+            <div class="p-3 bg-slate-50 rounded font-mono text-[11px] text-slate-700 space-y-1 border border-slate-200">
+                <div>&bull; Partial Dependency Eliminated: Patient details separated into <code>PATIENT(patient_id, ...)</code></div>
+                <div>&bull; Partial Dependency Eliminated: Hospital details separated into <code>HOSPITAL(hospital_id, ...)</code></div>
+                <div>&bull; Full Dependency Preserved: <code>RESOURCE_ALLOCATION</code> holds ONLY attributes of the dispatch event itself (<code>dispatch_time</code>, <code>arrival_time</code>, <code>status</code>).</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 3: 3NF Panel (Default Visible) -->
+    <div id="panel-3nf" class="stage-panel space-y-4">
+        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-xs text-emerald-900">
+            <strong class="font-bold text-sm text-emerald-950 block mb-1">3NF: Elimination of Transitive Dependencies</strong>
+            <strong>Condition:</strong> Must be in 2NF, and no non-prime attribute may transitively depend on the primary key ($X \rightarrow Y$ and $Y \rightarrow Z$). Every attribute must depend strictly on the superkey alone!
+        </div>
+
+        <!-- Transitive Dependency Diagram -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Transitive Dependency Resolution in Our Schema:</h3>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 gap-3 text-xs">
+                <div class="bg-rose-100 text-rose-900 p-3 rounded-lg font-mono font-bold text-center w-full md:w-auto">
+                    hospital_id [PK]
+                </div>
+                <div class="text-slate-400 font-bold">&rarr; determines &rarr;</div>
+                <div class="bg-amber-100 text-amber-900 p-3 rounded-lg font-mono font-bold text-center w-full md:w-auto">
+                    postal_code / zone
+                </div>
+                <div class="text-slate-400 font-bold">&rarr; determines &rarr;</div>
+                <div class="bg-rose-100 text-rose-900 p-3 rounded-lg font-mono font-bold text-center w-full md:w-auto">
+                    city_district (Transitive!)
+                </div>
+            </div>
+
+            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-xs text-emerald-900 space-y-2">
+                <strong class="font-bold text-emerald-950 block">3NF Solution Applied:</strong>
+                <p>
+                    We extracted geographic location attributes into the normalized entity:
+                    <br>
+                    <code class="font-bold font-mono bg-white px-2 py-0.5 rounded border border-emerald-200 text-emerald-800">
+                        LOCATION(location_id [PK], address_line, zone_area, landmark, postal_code, city_district)
+                    </code>
+                </p>
+                <p class="text-emerald-800 text-[11px]">
+                    Now, <code>HOSPITAL</code> and <code>EMERGENCY</code> merely hold the foreign key <code>location_id</code>. Transitive dependencies are 100% eliminated!
+                </p>
+            </div>
+        </div>
+
+        <!-- Functional Dependencies Catalog Card -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Mathematical Functional Dependencies (FDs) Enforced:</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono text-[11px]">
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span class="text-indigo-600 font-bold">FD 1:</span> patient_id &rarr; {name, age, gender, contact, blood_group}
+                </div>
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span class="text-indigo-600 font-bold">FD 2:</span> ambulance_id &rarr; {vehicle_no, type, status, base_station}
+                </div>
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span class="text-indigo-600 font-bold">FD 3:</span> vehicle_no &rarr; ambulance_id (Candidate Key)
+                </div>
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span class="text-indigo-600 font-bold">FD 4:</span> equipment_id &rarr; {ambulance_id, equipment_name, serial_no, is_functional}
+                </div>
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span class="text-indigo-600 font-bold">FD 5:</span> {dept_id, bed_number} &rarr; {floor_no, bed_type, is_occupied}
+                </div>
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <span class="text-indigo-600 font-bold">FD 6:</span> location_id &rarr; {address_line, zone_area, landmark, postal_code, city}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function showStage(stage) {
+        document.querySelectorAll('.stage-panel').forEach(p => p.classList.add('hidden'));
+        document.getElementById('panel-' + stage).classList.remove('hidden');
+
+        ['0nf', '1nf', '2nf', '3nf'].forEach(s => {
+            const btn = document.getElementById('tab-' + s);
+            if (s === stage) {
+                btn.className = "px-4 py-2 rounded-lg text-xs font-bold transition bg-emerald-600 text-white shadow-sm";
+            } else {
+                btn.className = "px-4 py-2 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-700 hover:bg-slate-200";
+            }
+        });
+    }
+</script>
+{% endblock %}

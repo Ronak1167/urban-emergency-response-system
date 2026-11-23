@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- KPI Metrics Row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pending Calls</div>
+            <div class="mt-2 flex items-baseline justify-between">
+                <div class="text-2xl font-bold text-rose-600">{{ metrics.pending_emergencies }}</div>
+                <span class="p-2 bg-rose-50 text-rose-600 rounded-lg text-xs"><i class="fa-solid fa-bell"></i></span>
+            </div>
+            <div class="text-xs text-slate-500 mt-1">Awaiting dispatch</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Dispatches</div>
+            <div class="mt-2 flex items-baseline justify-between">
+                <div class="text-2xl font-bold text-amber-600">{{ metrics.active_dispatches }}</div>
+                <span class="p-2 bg-amber-50 text-amber-600 rounded-lg text-xs"><i class="fa-solid fa-route"></i></span>
+            </div>
+            <div class="text-xs text-slate-500 mt-1">En-route / In-transit</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Available Fleet</div>
+            <div class="mt-2 flex items-baseline justify-between">
+                <div class="text-2xl font-bold text-emerald-600">{{ metrics.available_ambulances }}</div>
+                <span class="p-2 bg-emerald-50 text-emerald-600 rounded-lg text-xs"><i class="fa-solid fa-ambulance"></i></span>
+            </div>
+            <div class="text-xs text-slate-500 mt-1">Of {{ metrics.total_ambulances }} vehicles</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Vacant ICU Beds</div>
+            <div class="mt-2 flex items-baseline justify-between">
+                <div class="text-2xl font-bold text-blue-600">{{ metrics.vacant_icu_beds }}</div>
+                <span class="p-2 bg-blue-50 text-blue-600 rounded-lg text-xs"><i class="fa-solid fa-heart-pulse"></i></span>
+            </div>
+            <div class="text-xs text-slate-500 mt-1">Critical capacity</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Vacant Beds</div>
+            <div class="mt-2 flex items-baseline justify-between">
+                <div class="text-2xl font-bold text-indigo-600">{{ metrics.vacant_beds }}</div>
+                <span class="p-2 bg-indigo-50 text-indigo-600 rounded-lg text-xs"><i class="fa-solid fa-bed"></i></span>
+            </div>
+            <div class="text-xs text-slate-500 mt-1">Of {{ metrics.total_beds }} configured</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</div>
+                <div class="text-xs text-slate-600 mt-1">Register new 112 caller</div>
+            </div>
+            <a href="/intake" class="mt-2 bg-emergency-600 hover:bg-emergency-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs text-center transition flex items-center justify-center">
+                <i class="fa-solid fa-plus mr-1"></i> New Intake
+            </a>
+        </div>
+    </div>
+
+    <!-- Live Database Mutation Dossier Banner (Shows exact updated table rows on screen) -->
+    {% if last_mutation %}
+    <div class="bg-gradient-to-r from-emerald-950 via-slate-900 to-indigo-950 text-white p-5 rounded-2xl border-2 border-emerald-500/50 shadow-xl space-y-3 animate-fade-in">
+        <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
+                <h3 class="text-sm font-bold text-emerald-400 flex items-center">
+                    <i class="fa-solid fa-database mr-2"></i> LIVE DATABASE MUTATION DOSSIER: Incident #{{ last_mutation.emergency_id }} Dispatched!
+                </h3>
+            </div>
+            <a href="/concepts/mutation-inspector?emergency_id={{ last_mutation.emergency_id }}" 
+               class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1 rounded-lg text-xs transition flex items-center shadow">
+                <i class="fa-solid fa-magnifying-glass mr-1.5"></i> Inspect Raw Row Diffs
+            </a>
+        </div>
+
+        <p class="text-xs text-slate-300">
+            Tell your teacher: <em>"In the last ACID transaction, 4 separate database relations were updated atomically, and 1 trigger fired without writing manual insert code!"</em>
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
+            <!-- Table 1: EMERGENCY -->
+            <div class="bg-slate-900/90 border border-emerald-500/30 p-3 rounded-xl">
+                <div class="text-[10px] text-emerald-400 font-bold uppercase font-sans">1. Table: EMERGENCY</div>
+                <div class="text-slate-300 mt-1 font-bold">Row #{{ last_mutation.emergency_id }}</div>
+                <div class="text-[11px] text-emerald-400 mt-1">status: 'Reported' &rarr; <span class="bg-emerald-900 px-1.5 py-0.5 rounded font-bold">'Dispatched'</span></div>
+            </div>
+
+            <!-- Table 2: AMBULANCE -->
+            <div class="bg-slate-900/90 border border-emerald-500/30 p-3 rounded-xl">
+                <div class="text-[10px] text-emerald-400 font-bold uppercase font-sans">2. Table: AMBULANCE</div>
+                <div class="text-slate-300 mt-1 font-bold">{{ last_mutation.ambulance.vehicle_no }} ({{ last_mutation.ambulance.type }})</div>
+                <div class="text-[11px] text-emerald-400 mt-1">status: 'Available' &rarr; <span class="bg-emerald-900 px-1.5 py-0.5 rounded font-bold">'Dispatched'</span></div>
+            </div>
+
+            <!-- Table 3: BED -->
+            <div class="bg-slate-900/90 border border-emerald-500/30 p-3 rounded-xl">
+                <div class="text-[10px] text-emerald-400 font-bold uppercase font-sans">3. Table: BED</div>
+                <div class="text-slate-300 mt-1 font-bold">{{ last_mutation.hospital.bed_number }} ({{ last_mutation.hospital.bed_type }})</div>
+                <div class="text-[11px] text-emerald-400 mt-1">is_occupied: 0 &rarr; <span class="bg-emerald-900 px-1.5 py-0.5 rounded font-bold">1 (OCCUPIED)</span></div>
+            </div>
+
+            <!-- Table 4: TRIGGER AUDIT -->
+            <div class="bg-slate-900/90 border border-emerald-500/30 p-3 rounded-xl">
+                <div class="text-[10px] text-emerald-400 font-bold uppercase font-sans">4. Table: STATUS_HISTORY</div>
+                <div class="text-slate-300 mt-1 font-bold">New Log Created</div>
+                <div class="text-[11px] text-amber-300 mt-1">&rarr; Trigger: <code>trg_emergency_status_update</code></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Active Emergency Incidents Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3 bg-slate-50/50">
+            <div>
+                <h2 class="text-base font-bold text-slate-900 flex items-center">
+                    <i class="fa-solid fa-triangle-exclamation text-emergency-600 mr-2"></i>
+                    Live Emergency Queue & Resource Dispatch Control
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    Querying <code>vw_active_emergencies</code> &bull; Pairs incident requirement against ambulance fleet and ICU beds
+                </p>
+            </div>
+            <span class="text-xs px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full font-medium">
+                {{ emergencies|length }} Total Active Incidents
+            </span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-100 text-slate-700 uppercase font-semibold text-[11px] tracking-wider">
+                    <tr>
+                        <th class="py-3 px-4">Incident</th>
+                        <th class="py-3 px-4">Severity & Priority</th>
+                        <th class="py-3 px-4">Patient & Contact</th>
+                        <th class="py-3 px-4">Urban Location</th>
+                        <th class="py-3 px-4">Allocated Ambulance</th>
+                        <th class="py-3 px-4">Reserved Bed</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4 text-right">ACID Dispatch / Lifecycle Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for em in emergencies %}
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3 px-4 font-mono font-medium text-slate-900">
+                            #{{ em.emergency_id }}
+                            <div class="text-[10px] text-slate-400 font-sans">{{ em.reported_time }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="flex items-center space-x-1.5">
+                                <span class="px-2 py-0.5 rounded text-[11px] font-bold 
+                                    {% if em.severity == 5 %} bg-red-100 text-red-800 border border-red-200
+                                    {% elif em.severity == 4 %} bg-orange-100 text-orange-800 border border-orange-200
+                                    {% elif em.severity == 3 %} bg-amber-100 text-amber-800 border border-amber-200
+                                    {% else %} bg-blue-100 text-blue-800 border border-blue-200 {% endif %}">
+                                    Lvl {{ em.severity }}
+                                </span>
+                                <span class="font-semibold text-slate-800">{{ em.emergency_category }}</span>
+                            </div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Priority: {{ em.priority_rank }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="font-medium text-slate-900">{{ em.patient_name }} ({{ em.patient_age }}y, {{ em.patient_gender }})</div>
+                            <div class="text-slate-500 text-[11px]"><i class="fa-solid fa-phone text-slate-400 mr-1"></i>{{ em.patient_phone }}</div>
+                            <span class="inline-block mt-0.5 px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded text-[10px] font-mono">Blood: {{ em.blood_group }}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="font-medium text-slate-800">{{ em.zone_area }}</div>
+                            <div class="text-slate-500 text-[11px]">{{ em.address_line }}</div>
+                            {% if em.landmark %}
+                            <div class="text-[10px] text-slate-400">Ref: {{ em.landmark }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if em.assigned_ambulance %}
+                                <div class="font-semibold text-emerald-700 flex items-center">
+                                    <i class="fa-solid fa-truck mr-1 text-emerald-500"></i> {{ em.assigned_ambulance }}
+                                </div>
+                                <span class="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200 font-medium">
+                                    Class: {{ em.ambulance_class }}
+                                </span>
+                            {% else %}
+                                <span class="text-slate-400 italic">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if em.reserved_bed %}
+                                <div class="font-medium text-blue-700">{{ em.assigned_hospital }}</div>
+                                <span class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200 font-medium">
+                                    Bed {{ em.reserved_bed }} ({{ em.reserved_bed_type }})
+                                </span>
+                            {% else %}
+                                <span class="text-slate-400 italic">No reservation</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold inline-flex items-center 
+                                {% if em.incident_status in ('Reported', 'Pending') %} bg-rose-100 text-rose-800
+                                {% elif em.incident_status == 'Dispatched' %} bg-amber-100 text-amber-800
+                                {% elif em.incident_status == 'In-Transit' %} bg-sky-100 text-sky-800
+                                {% elif em.incident_status == 'Admitted' %} bg-indigo-100 text-indigo-800
+                                {% else %} bg-emerald-100 text-emerald-800 {% endif %}">
+                                <span class="w-1.5 h-1.5 rounded-full mr-1.5 
+                                    {% if em.incident_status in ('Reported', 'Pending') %} bg-rose-500
+                                    {% elif em.incident_status == 'Dispatched' %} bg-amber-500
+                                    {% elif em.incident_status == 'In-Transit' %} bg-sky-500
+                                    {% elif em.incident_status == 'Admitted' %} bg-indigo-500
+                                    {% else %} bg-emerald-500 {% endif %}"></span>
+                                {{ em.incident_status }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            {% if em.incident_status in ('Reported', 'Pending') %}
+                            <!-- One-click ACID Transaction Dispatch Button -->
+                            <form action="/dispatch/{{ em.emergency_id }}" method="POST" class="inline">
+                                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-1 px-3 rounded text-xs shadow-sm transition inline-flex items-center">
+                                    <i class="fa-solid fa-bolt mr-1"></i> ACID Dispatch
+                                </button>
+                            </form>
+                            {% elif em.incident_status == 'Dispatched' %}
+                            <form action="/transition/{{ em.emergency_id }}" method="POST" class="inline">
+                                <input type="hidden" name="new_status" value="In-Transit">
+                                <button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white font-medium py-1 px-2.5 rounded text-xs shadow-sm transition inline-flex items-center">
+                                    <i class="fa-solid fa-road mr-1"></i> In-Transit
+                                </button>
+                            </form>
+                            {% elif em.incident_status == 'In-Transit' %}
+                            <form action="/transition/{{ em.emergency_id }}" method="POST" class="inline">
+                                <input type="hidden" name="new_status" value="Admitted">
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-1 px-2.5 rounded text-xs shadow-sm transition inline-flex items-center">
+                                    <i class="fa-solid fa-hospital-user mr-1"></i> Admit & Free Unit
+                                </button>
+                            </form>
+                            {% elif em.incident_status == 'Admitted' %}
+                            <form action="/transition/{{ em.emergency_id }}" method="POST" class="inline">
+                                <input type="hidden" name="new_status" value="Resolved">
+                                <button type="submit" class="bg-slate-700 hover:bg-slate-800 text-white font-medium py-1 px-2.5 rounded text-xs shadow-sm transition inline-flex items-center">
+                                    <i class="fa-solid fa-check-double mr-1"></i> Resolve
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-check text-emerald-500 mr-1"></i>Complete</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ACID Transaction Explanation Card for DBMS Lab Evaluation -->
+    <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 rounded-xl border border-slate-700 shadow-md">
+        <div class="flex items-start space-x-4">
+            <div class="bg-emergency-600 text-white p-3 rounded-lg text-lg">
+                <i class="fa-solid fa-database"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-sm text-amber-400">DBMS Transaction & Trigger Protocol (ACID Compliance)</h3>
+                <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                    When you click <strong>"ACID Dispatch"</strong>, an atomic transaction executes via <code>BEGIN IMMEDIATE</code>:
+                    1) Selects an eligible <strong>ALS / BLS Ambulance</strong> carrying functional apparatus;
+                    2) Queries and locks a vacant <strong>ICU / General Bed</strong> at the nearest hospital;
+                    3) Atomically updates <code>AMBULANCE.operational_status = 'Dispatched'</code>, <code>BED.is_occupied = 1</code>, and records into <code>RESOURCE_ALLOCATION</code>;
+                    4) Updates <code>EMERGENCY.status = 'Dispatched'</code> which fires the automated database trigger <code>trg_emergency_status_update</code> logging to <code>EMERGENCY_STATUS_HISTORY</code>.
+                    If any resource is missing, the entire transaction is rolled back with zero dirty writes.
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

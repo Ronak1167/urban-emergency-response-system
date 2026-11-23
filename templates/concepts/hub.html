@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Hero Header -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden">
+        <div class="relative z-10 max-w-3xl">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 mb-3">
+                <i class="fa-solid fa-graduation-cap mr-1.5"></i> Academic Faculty Evaluation Mode
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                DBMS Concepts Interactive Visualizer
+            </h1>
+            <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+                Experience every core theoretical and practical principle of Database Management Systems happening live on screen: from <strong>3NF Normalization</strong> and <strong>ER Cardinalities</strong> to <strong>ACID Concurrency Locks</strong>, <strong>Automated Triggers</strong>, and <strong>Constraint Enforcement</strong>.
+            </p>
+        </div>
+        <div class="absolute right-4 bottom-2 opacity-10 text-9xl text-indigo-400 pointer-events-none hidden lg:block">
+            <i class="fa-solid fa-diagram-project"></i>
+        </div>
+    </div>
+
+    <!-- Visual Concept Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+        <!-- Featured Card: Live Data Mutation & State Diff Inspector -->
+        <a href="/concepts/mutation-inspector" class="group bg-gradient-to-br from-emerald-50 to-white p-6 rounded-xl border-2 border-emerald-500/40 shadow-sm hover:shadow-md hover:border-emerald-500 transition flex flex-col justify-between md:col-span-2 lg:col-span-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-start space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl shadow group-hover:scale-105 transition flex-shrink-0">
+                        <i class="fa-solid fa-code-compare"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-ping"></span> Live Evaluator Tool &bull; Real-Time Data Diffs
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mt-1 group-hover:text-emerald-700 transition">
+                            Live Database Mutation &amp; State Diff Inspector
+                        </h3>
+                        <p class="text-xs text-slate-600 mt-1 leading-relaxed max-w-3xl">
+                            The exact tool to demonstrate to professors when they ask: <em>"If I dispatch something, where does the data change in the actual database?"</em>
+                            Inspect the raw rows in <code>EMERGENCY</code>, <code>AMBULANCE</code>, <code>BED</code>, <code>RESOURCE_ALLOCATION</code>, and <code>EMERGENCY_STATUS_HISTORY</code> with glowing before-and-after state diffs!
+                        </p>
+                    </div>
+                </div>
+                <div class="flex-shrink-0">
+                    <span class="bg-emerald-600 group-hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg text-xs shadow flex items-center">
+                        Open Mutation Inspector <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </span>
+                </div>
+            </div>
+        </a>
+
+        <!-- Card 1: Interactive ER & EER Diagram -->
+        <a href="/concepts/er-diagram" class="group bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-400 transition flex flex-col justify-between">
+            <div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-sitemap"></i>
+                </div>
+                <div class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Concept 1 &bull; Data Modeling</div>
+                <h3 class="text-lg font-bold text-slate-900 mt-1 group-hover:text-indigo-600 transition">Interactive ER / EER Schema</h3>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Visual interactive schema map with all 12 entities, Primary/Foreign keys, 1:N cardinalities, and the ternary associative relation <code>RESOURCE_ALLOCATION</code>.
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-indigo-600 group-hover:translate-x-1 transition">
+                <span>Explore Schema Graph</span>
+                <i class="fa-solid fa-arrow-right ml-1.5"></i>
+            </div>
+        </a>
+
+        <!-- Card 2: 3NF Normalization Stepper -->
+        <a href="/concepts/normalization" class="group bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-400 transition flex flex-col justify-between">
+            <div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Concept 2 &bull; Relational Theory</div>
+                <h3 class="text-lg font-bold text-slate-900 mt-1 group-hover:text-emerald-600 transition">3NF Normalization Stepper</h3>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Step-by-step visual proof from <strong>0NF &rarr; 1NF &rarr; 2NF &rarr; 3NF</strong>. Visualizes repeating group extraction, partial dependency removal, and Functional Dependency (FD) graphs.
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-emerald-600 group-hover:translate-x-1 transition">
+                <span>View Normalization Proofs</span>
+                <i class="fa-solid fa-arrow-right ml-1.5"></i>
+            </div>
+        </a>
+
+        <!-- Card 3: Step-by-Step ACID Transaction Simulator -->
+        <a href="/concepts/acid-transactions" class="group bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-400 transition flex flex-col justify-between">
+            <div>
+                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="text-xs font-bold text-amber-600 uppercase tracking-wider">Concept 3 &bull; Concurrency & ACID</div>
+                <h3 class="text-lg font-bold text-slate-900 mt-1 group-hover:text-amber-600 transition">ACID Transaction Stepper</h3>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Live step-by-step state machine (Active &rarr; Partially Committed &rarr; Committed). Demonstrates write concurrency locks (<code>BEGIN IMMEDIATE</code>) and atomic rollback simulation.
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-amber-600 group-hover:translate-x-1 transition">
+                <span>Simulate ACID Execution</span>
+                <i class="fa-solid fa-arrow-right ml-1.5"></i>
+            </div>
+        </a>
+
+        <!-- Card 4: Database Trigger Execution & Audit Lifecycle -->
+        <a href="/concepts/triggers" class="group bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-rose-400 transition flex flex-col justify-between">
+            <div>
+                <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-bolt-lightning"></i>
+                </div>
+                <div class="text-xs font-bold text-rose-600 uppercase tracking-wider">Concept 4 &bull; Active Databases</div>
+                <h3 class="text-lg font-bold text-slate-900 mt-1 group-hover:text-rose-600 transition">Database Trigger Visualizer</h3>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Visual engine pipeline for <code>AFTER UPDATE</code> and <code>AFTER INSERT</code> triggers. Inspects <code>OLD</code> vs <code>NEW</code> pseudo-records and includes a live interactive Trigger Test Pad.
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-rose-600 group-hover:translate-x-1 transition">
+                <span>Test Trigger Execution</span>
+                <i class="fa-solid fa-arrow-right ml-1.5"></i>
+            </div>
+        </a>
+
+        <!-- Card 5: Integrity Constraint Violation Sandbox -->
+        <a href="/concepts/constraints" class="group bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-purple-400 transition flex flex-col justify-between">
+            <div>
+                <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div class="text-xs font-bold text-purple-600 uppercase tracking-wider">Concept 5 &bull; Integrity & Constraints</div>
+                <h3 class="text-lg font-bold text-slate-900 mt-1 group-hover:text-purple-600 transition">Integrity Constraint Sandbox</h3>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Live laboratory to test Foreign Key, CHECK, and UNIQUE constraint violations. Triggers real SQL statements and displays exact DBMS engine rejection responses.
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-purple-600 group-hover:translate-x-1 transition">
+                <span>Test Constraint Violations</span>
+                <i class="fa-solid fa-arrow-right ml-1.5"></i>
+            </div>
+        </a>
+
+        <!-- Card 6: Relational Algebra & Query Optimizer -->
+        <a href="/concepts/relational-algebra" class="group bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-sky-400 transition flex flex-col justify-between">
+            <div>
+                <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-calculator"></i>
+                </div>
+                <div class="text-xs font-bold text-sky-600 uppercase tracking-wider">Concept 6 &bull; Query Optimization</div>
+                <h3 class="text-lg font-bold text-slate-900 mt-1 group-hover:text-sky-600 transition">Relational Algebra & Plans</h3>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Relational algebra operator translations ($\Pi$, $\sigma$, $\bowtie$, $\gamma$) and live <code>EXPLAIN QUERY PLAN</code> execution trees for multi-table joins and subqueries.
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-sky-600 group-hover:translate-x-1 transition">
+                <span>Inspect Query Plans</span>
+                <i class="fa-solid fa-arrow-right ml-1.5"></i>
+            </div>
+        </a>
+
+    </div>
+
+</div>
+{% endblock %}

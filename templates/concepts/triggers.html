@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex justify-between items-center">
+        <div>
+            <div class="text-xs font-bold text-rose-600 uppercase tracking-wider flex items-center">
+                <i class="fa-solid fa-bolt-lightning mr-1.5"></i> DBMS Concept Visualizer 4
+            </div>
+            <h1 class="text-xl font-bold text-slate-900 mt-0.5">Database Trigger Architecture &amp; Audit Trail Lifecycle</h1>
+            <p class="text-xs text-slate-500 mt-1">
+                Visualizing active database rules (Event-Condition-Action) and live inspection of <code>OLD</code> vs <code>NEW</code> pseudo-records.
+            </p>
+        </div>
+        <a href="/concepts" class="text-xs text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Visualizer Hub
+        </a>
+    </div>
+
+    <!-- Trigger ECA Visual Flowchart -->
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center">
+            <i class="fa-solid fa-gears text-rose-500 mr-2"></i> Event-Condition-Action (ECA) Trigger Execution Pipeline
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+            <!-- Event Block -->
+            <div class="bg-rose-50 border border-rose-200 p-4 rounded-xl">
+                <span class="text-[10px] font-bold uppercase text-rose-600 block">1. Database Event</span>
+                <h4 class="font-bold text-rose-950 mt-1">AFTER UPDATE OF status</h4>
+                <p class="text-rose-800 text-[11px] mt-1">
+                    Fired by SQLite / MySQL engine whenever an <code>UPDATE</code> modifies column <code>status</code> in <code>EMERGENCY</code>.
+                </p>
+            </div>
+
+            <!-- Condition Block -->
+            <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
+                <span class="text-[10px] font-bold uppercase text-amber-600 block">2. Condition Check</span>
+                <h4 class="font-bold text-amber-950 mt-1">OLD.status &ne; NEW.status</h4>
+                <p class="text-amber-800 text-[11px] mt-1">
+                    Validates that an actual status progression occurred (avoids redundant duplicate logging).
+                </p>
+            </div>
+
+            <!-- Pseudo-records Block -->
+            <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl">
+                <span class="text-[10px] font-bold uppercase text-blue-600 block">3. Pseudo-Records</span>
+                <h4 class="font-bold text-blue-950 mt-1">OLD vs NEW In-Memory</h4>
+                <p class="text-blue-800 text-[11px] mt-1">
+                    Captures <code>OLD.status</code> ('Reported') and <code>NEW.status</code> ('Dispatched') directly from transaction buffer.
+                </p>
+            </div>
+
+            <!-- Action Block -->
+            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
+                <span class="text-[10px] font-bold uppercase text-emerald-600 block">4. Trigger Action</span>
+                <h4 class="font-bold text-emerald-950 mt-1">INSERT INTO History</h4>
+                <p class="text-emerald-800 text-[11px] mt-1">
+                    Persists row to <code>EMERGENCY_STATUS_HISTORY</code> with current timestamp and transition remarks.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Trigger Test Pad & Real-Time Audit Viewer -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Left: Interactive Trigger Test Pad Form -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center">
+                <i class="fa-solid fa-play text-emerald-600 mr-2"></i> Live Trigger Execution Test Pad
+            </h3>
+            <p class="text-xs text-slate-500">
+                Choose an incident and advance its lifecycle state. Watch the database engine fire the trigger and append to the audit table automatically!
+            </p>
+
+            <form action="/concepts/triggers/fire" method="POST" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Select Active Emergency:</label>
+                    <select name="emergency_id" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                        {% for em in emergencies %}
+                        <option value="{{ em.emergency_id }}">
+                            #{{ em.emergency_id }} - {{ em.patient_name }} (Current: {{ em.incident_status }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Target Lifecycle Status:</label>
+                    <select name="new_status" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                        <option value="Dispatched">Dispatched</option>
+                        <option value="In-Transit">In-Transit</option>
+                        <option value="Admitted">Admitted (Hospital Triage)</option>
+                        <option value="Resolved">Resolved (Concluded)</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Doctor / Dispatcher Remarks (Optional):</label>
+                    <input type="text" name="remarks" placeholder="e.g. Paramedic vitals verified stable" 
+                           class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                </div>
+
+                <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition flex items-center justify-center">
+                    <i class="fa-solid fa-bolt mr-2"></i> Update Emergency &amp; Fire Trigger
+                </button>
+            </form>
+        </div>
+
+        <!-- Right: Recent Trigger Logs Stream -->
+        <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+            <div class="p-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Recent Trigger Executions (<code>EMERGENCY_STATUS_HISTORY</code>)
+                </h3>
+                <span class="text-[11px] text-slate-500 font-mono">{{ history|length }} Total Logs</span>
+            </div>
+
+            <div class="overflow-x-auto max-h-96">
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-100 text-slate-700 uppercase font-semibold text-[10px]">
+                        <tr>
+                            <th class="py-2.5 px-3">History ID</th>
+                            <th class="py-2.5 px-3">Emergency</th>
+                            <th class="py-2.5 px-3">Status State</th>
+                            <th class="py-2.5 px-3">Logged By</th>
+                            <th class="py-2.5 px-3">Remarks &amp; Transition</th>
+                            <th class="py-2.5 px-3">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 font-sans">
+                        {% for h in history[:10] %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="py-2 px-3 font-mono font-bold text-slate-900">#{{ h.history_id }}</td>
+                            <td class="py-2 px-3 font-mono text-rose-600 font-bold">#{{ h.emergency_id }}</td>
+                            <td class="py-2 px-3">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800">
+                                    {{ h.status_state }}
+                                </span>
+                            </td>
+                            <td class="py-2 px-3 font-mono text-[10px]">{{ h.updated_by }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ h.remarks }}</td>
+                            <td class="py-2 px-3 font-mono text-[10px] text-slate-400">{{ h.changed_at }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-3 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-500 flex justify-between">
+                <span>Trigger Rule: <code>trg_emergency_status_update</code></span>
+                <span class="text-emerald-600 font-semibold"><i class="fa-solid fa-circle-check mr-1"></i>Active Engine Listener</span>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

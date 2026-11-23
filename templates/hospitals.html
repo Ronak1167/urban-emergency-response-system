@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-slate-900">Hospital Departmental Bed Capacity Monitor</h1>
+            <p class="text-xs text-slate-500 mt-1">
+                Real-time view populated from SQL view <code>vw_hospital_bed_occupancy</code> &bull; Tracks ICU and General bed availability across trauma tiers.
+            </p>
+        </div>
+        <a href="/" class="text-xs text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for h in hospitals %}
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-start">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold 
+                        {% if h.emergency_level == 'Level 1 Trauma' %} bg-rose-100 text-rose-800
+                        {% elif h.emergency_level == 'Level 2 Trauma' %} bg-amber-100 text-amber-800
+                        {% else %} bg-slate-100 text-slate-800 {% endif %}">
+                        {{ h.emergency_level }}
+                    </span>
+                    <span class="text-xs font-bold text-slate-500 font-mono">{{ h.location_zone }}</span>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 mt-2">{{ h.hospital_name }}</h3>
+                <div class="mt-4 space-y-2 text-xs">
+                    <div class="flex justify-between text-slate-600">
+                        <span>Total Configured Beds:</span>
+                        <span class="font-bold text-slate-900">{{ h.total_beds_configured }}</span>
+                    </div>
+                    <div class="flex justify-between text-slate-600">
+                        <span>Occupied Beds:</span>
+                        <span class="font-semibold text-rose-600">{{ h.occupied_beds }}</span>
+                    </div>
+                    <div class="flex justify-between text-slate-600">
+                        <span>Vacant General Beds:</span>
+                        <span class="font-semibold text-emerald-600">{{ h.vacant_general_beds }}</span>
+                    </div>
+                    <div class="flex justify-between text-slate-600">
+                        <span>Vacant ICU Beds:</span>
+                        <span class="font-bold text-blue-600">{{ h.vacant_icu_beds }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 pt-3 border-t border-slate-100">
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="text-slate-500">Occupancy Rate:</span>
+                    <span class="font-bold text-slate-800">{{ h.occupancy_percentage }}%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div class="h-2 rounded-full 
+                        {% if h.occupancy_percentage > 75 %} bg-rose-500
+                        {% elif h.occupancy_percentage > 40 %} bg-amber-500
+                        {% else %} bg-emerald-500 {% endif %}" 
+                        style="width: {{ h.occupancy_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Raw SQL View Data Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 bg-slate-50/50">
+            <h3 class="text-sm font-bold text-slate-900">SQL View Data: <code>vw_hospital_bed_occupancy</code></h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-100 text-slate-700 uppercase font-semibold text-[11px]">
+                    <tr>
+                        <th class="py-3 px-4">Hospital ID</th>
+                        <th class="py-3 px-4">Hospital Name</th>
+                        <th class="py-3 px-4">Trauma Level</th>
+                        <th class="py-3 px-4">Zone</th>
+                        <th class="py-3 px-4">Total Beds</th>
+                        <th class="py-3 px-4">Occupied</th>
+                        <th class="py-3 px-4">Vacant</th>
+                        <th class="py-3 px-4">Vacant ICU</th>
+                        <th class="py-3 px-4">Vacant Gen</th>
+                        <th class="py-3 px-4">Occupancy Rate</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for h in hospitals %}
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-2.5 px-4 font-mono">{{ h.hospital_id }}</td>
+                        <td class="py-2.5 px-4 font-semibold text-slate-900">{{ h.hospital_name }}</td>
+                        <td class="py-2.5 px-4">{{ h.emergency_level }}</td>
+                        <td class="py-2.5 px-4">{{ h.location_zone }}</td>
+                        <td class="py-2.5 px-4">{{ h.total_beds_configured }}</td>
+                        <td class="py-2.5 px-4 text-rose-600 font-medium">{{ h.occupied_beds }}</td>
+                        <td class="py-2.5 px-4 text-emerald-600 font-medium">{{ h.vacant_beds }}</td>
+                        <td class="py-2.5 px-4 text-blue-600 font-bold">{{ h.vacant_icu_beds }}</td>
+                        <td class="py-2.5 px-4">{{ h.vacant_general_beds }}</td>
+                        <td class="py-2.5 px-4 font-bold">{{ h.occupancy_percentage }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

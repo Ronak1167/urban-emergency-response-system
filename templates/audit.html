@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-slate-900">Trigger-Driven Chronological Audit Trail</h1>
+            <p class="text-xs text-slate-500 mt-1">
+                Captured automatically by SQLite / MySQL triggers: <code>trg_emergency_status_insert</code> &amp; <code>trg_emergency_status_update</code> on <code>EMERGENCY</code>.
+            </p>
+        </div>
+        <a href="/" class="text-xs text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Trigger Explanation -->
+    <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-xs text-blue-900 flex items-start space-x-3">
+        <i class="fa-solid fa-code-branch text-blue-600 text-base mt-0.5"></i>
+        <div>
+            <strong class="font-bold">Database Trigger Specification:</strong>
+            Whenever an emergency record is inserted or its <code>status</code> column is updated, the database engine executes an <code>AFTER UPDATE OF status ON EMERGENCY</code> trigger. This writes directly into the immutable table <code>EMERGENCY_STATUS_HISTORY</code> without requiring explicit application insert statements.
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+            <h3 class="text-sm font-bold text-slate-900">Audit Log Records (<code>EMERGENCY_STATUS_HISTORY</code>)</h3>
+            <span class="text-xs text-slate-500">{{ history|length }} Log Entries Captured</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-100 text-slate-700 uppercase font-semibold text-[11px]">
+                    <tr>
+                        <th class="py-3 px-4">Log ID</th>
+                        <th class="py-3 px-4">Emergency Incident</th>
+                        <th class="py-3 px-4">Patient Name</th>
+                        <th class="py-3 px-4">Status State</th>
+                        <th class="py-3 px-4">Recorded Timestamp</th>
+                        <th class="py-3 px-4">Updated By</th>
+                        <th class="py-3 px-4">System Remarks &amp; Audit Transition</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for h in history %}
+                    <tr class="hover:bg-slate-50 font-sans">
+                        <td class="py-3 px-4 font-mono font-bold text-slate-900">#{{ h.history_id }}</td>
+                        <td class="py-3 px-4 font-mono">
+                            <a href="/audit?emergency_id={{ h.emergency_id }}" class="text-emergency-600 hover:underline font-bold">
+                                Emergency #{{ h.emergency_id }}
+                            </a>
+                        </td>
+                        <td class="py-3 px-4 font-medium text-slate-800">{{ h.patient_name }}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold 
+                                {% if h.status_state in ('Reported', 'Pending') %} bg-rose-100 text-rose-800
+                                {% elif h.status_state == 'Dispatched' %} bg-amber-100 text-amber-800
+                                {% elif h.status_state == 'In-Transit' %} bg-sky-100 text-sky-800
+                                {% elif h.status_state == 'Admitted' %} bg-indigo-100 text-indigo-800
+                                {% else %} bg-emerald-100 text-emerald-800 {% endif %}">
+                                {{ h.status_state }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 font-mono text-slate-500">{{ h.changed_at }}</td>
+                        <td class="py-3 px-4 font-mono text-[11px] text-slate-700">
+                            <span class="bg-slate-100 px-2 py-0.5 rounded border border-slate-200 font-semibold">
+                                {{ h.updated_by }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-slate-700">{{ h.remarks }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

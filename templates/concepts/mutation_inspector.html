@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex justify-between items-center">
+        <div>
+            <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider flex items-center">
+                <i class="fa-solid fa-code-compare mr-1.5"></i> Live Data Inspector
+            </div>
+            <h1 class="text-xl font-bold text-slate-900 mt-0.5">Live Database Mutation &amp; State Diff Inspector</h1>
+            <p class="text-xs text-slate-500 mt-1">
+                Visualizing exact raw table row changes across <code>EMERGENCY</code>, <code>AMBULANCE</code>, <code>BED</code>, <code>RESOURCE_ALLOCATION</code>, and <code>EMERGENCY_STATUS_HISTORY</code> before and after execution.
+            </p>
+        </div>
+        <div class="flex space-x-2">
+            <a href="/concepts" class="text-xs text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Visualizer Hub
+            </a>
+            <a href="/" class="text-xs text-white bg-slate-900 hover:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm">
+                <i class="fa-solid fa-chart-line mr-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Incident Selector Bar -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <form method="GET" action="/concepts/mutation-inspector" class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <label class="text-xs font-bold text-slate-700">Select Emergency Incident to Inspect:</label>
+            <select name="emergency_id" onchange="this.form.submit()" class="text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none font-mono">
+                {% for em in all_emergencies %}
+                <option value="{{ em.emergency_id }}" {% if em.emergency_id == selected_eid %}selected{% endif %}>
+                    Incident #{{ em.emergency_id }}: {{ em.patient_name }} ({{ em.emergency_category }} - Severity {{ em.severity }}) &bull; Current Status: [{{ em.incident_status }}]
+                </option>
+                {% endfor %}
+            </select>
+            <noscript><button type="submit" class="bg-slate-800 text-white px-3 py-1 text-xs rounded">Load</button></noscript>
+        </form>
+
+        <div class="flex items-center space-x-2">
+            <span class="text-xs text-slate-500">Live Status:</span>
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold 
+                {% if state.emergency.status in ('Reported', 'Pending') %} bg-rose-100 text-rose-800
+                {% elif state.emergency.status == 'Dispatched' %} bg-amber-100 text-amber-800
+                {% elif state.emergency.status == 'In-Transit' %} bg-sky-100 text-sky-800
+                {% elif state.emergency.status == 'Admitted' %} bg-indigo-100 text-indigo-800
+                {% else %} bg-emerald-100 text-emerald-800 {% endif %}">
+                {{ state.emergency.status }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Teacher Live Mutation Action Bar -->
+    <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-5 rounded-xl border border-slate-800 shadow-md flex flex-wrap justify-between items-center gap-4">
+        <div>
+            <h3 class="text-sm font-bold text-amber-400 flex items-center">
+                <i class="fa-solid fa-play mr-2"></i> Faculty Live Change Demonstrator
+            </h3>
+            <p class="text-xs text-slate-300 mt-1">
+                Click any action below to trigger the live database mutation. Watch the raw rows below update their state, numbers, and trigger logs immediately!
+            </p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+            {% if state.emergency.status in ('Reported', 'Pending') %}
+            <!-- ACID Dispatch Action -->
+            <form action="/dispatch/{{ state.emergency.emergency_id }}" method="POST" class="inline">
+                <input type="hidden" name="return_to" value="/concepts/mutation-inspector?emergency_id={{ state.emergency.emergency_id }}">
+                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg text-xs shadow-md transition flex items-center">
+                    <i class="fa-solid fa-bolt mr-1.5"></i> Trigger Live ACID Dispatch
+                </button>
+            </form>
+            {% elif state.emergency.status == 'Dispatched' %}
+            <form action="/transition/{{ state.emergency.emergency_id }}" method="POST" class="inline">
+                <input type="hidden" name="new_status" value="In-Transit">
+                <input type="hidden" name="remarks" value="Paramedic radioed ambulance departure">
+                <input type="hidden" name="return_to" value="/concepts/mutation-inspector?emergency_id={{ state.emergency.emergency_id }}">
+                <button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg text-xs shadow-md transition flex items-center">
+                    <i class="fa-solid fa-road mr-1.5"></i> Transition to 'In-Transit'
+                </button>
+            </form>
+            {% elif state.emergency.status == 'In-Transit' %}
+            <form action="/transition/{{ state.emergency.emergency_id }}" method="POST" class="inline">
+                <input type="hidden" name="new_status" value="Admitted">
+                <input type="hidden" name="remarks" value="Hospital triage accepted; bed transferred">
+                <input type="hidden" name="return_to" value="/concepts/mutation-inspector?emergency_id={{ state.emergency.emergency_id }}">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg text-xs shadow-md transition flex items-center">
+                    <i class="fa-solid fa-hospital-user mr-1.5"></i> Transition to 'Admitted'
+                </button>
+            </form>
+            {% elif state.emergency.status == 'Admitted' %}
+            <form action="/transition/{{ state.emergency.emergency_id }}" method="POST" class="inline">
+                <input type="hidden" name="new_status" value="Resolved">
+                <input type="hidden" name="remarks" value="Treatment concluded; units free">
+                <input type="hidden" name="return_to" value="/concepts/mutation-inspector?emergency_id={{ state.emergency.emergency_id }}">
+                <button type="submit" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded-lg text-xs shadow-md transition flex items-center">
+                    <i class="fa-solid fa-check-double mr-1.5"></i> Resolve Incident
+                </button>
+            </form>
+            {% else %}
+            <form action="/reset-db" method="POST" class="inline" onsubmit="return confirm('Reset database to initial state?');">
+                <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold py-2 px-4 rounded-lg text-xs border border-slate-700 transition">
+                    <i class="fa-solid fa-rotate-left mr-1.5"></i> Reset Scenario to Re-test
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 4 Raw Database Table Row Panels (Live Inspection) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+        <!-- Table 1: EMERGENCY Row -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+            <div class="p-4 border-b border-slate-200 bg-slate-50/70 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                    <h3 class="text-xs font-bold text-slate-900 font-mono">TABLE: EMERGENCY (Row #{{ state.emergency.emergency_id }})</h3>
+                </div>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">PK: emergency_id = {{ state.emergency.emergency_id }}</span>
+            </div>
+
+            <div class="p-4 text-xs font-mono space-y-2">
+                <div class="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded">
+                    <div><span class="text-slate-400">patient_id:</span> <span class="font-bold text-slate-800">{{ state.emergency.patient_id }} ({{ state.patient.name }})</span></div>
+                    <div><span class="text-slate-400">severity:</span> <span class="font-bold text-red-600">Level {{ state.emergency.severity }}</span></div>
+                    <div><span class="text-slate-400">type_id:</span> <span class="text-slate-800 font-medium">{{ state.emergency.type_id }}</span></div>
+                    <div><span class="text-slate-400">reported_time:</span> <span class="text-slate-600 text-[10px]">{{ state.emergency.reported_time }}</span></div>
+                </div>
+
+                <div class="p-3 rounded-lg border flex justify-between items-center
+                    {% if state.emergency.status != 'Reported' %} bg-emerald-50 border-emerald-200 text-emerald-900
+                    {% else %} bg-rose-50 border-rose-200 text-rose-900 {% endif %}">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-500 font-sans block">Column: status</span>
+                        <span class="text-sm font-bold">{{ state.emergency.status }}</span>
+                    </div>
+                    {% if state.emergency.status != 'Reported' %}
+                    <span class="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-sans font-bold">
+                        <i class="fa-solid fa-check mr-1"></i> UPDATED LIVE
+                    </span>
+                    {% else %}
+                    <span class="text-[10px] font-sans text-rose-600 font-semibold">Pending Dispatch</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-500 font-sans">
+                <strong>What to show teacher:</strong> <em>"Notice column <code>status</code> changes from 'Reported' to 'Dispatched' immediately when clicked."</em>
+            </div>
+        </div>
+
+        <!-- Table 2: AMBULANCE Row -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+            <div class="p-4 border-b border-slate-200 bg-slate-50/70 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <h3 class="text-xs font-bold text-slate-900 font-mono">
+                        TABLE: AMBULANCE 
+                        {% if state.allocation %}(Row #{{ state.allocation.ambulance_id }})
+                        {% elif state.candidate_ambulance %}(Candidate: Row #{{ state.candidate_ambulance.ambulance_id }}){% endif %}
+                    </h3>
+                </div>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">
+                    {% if state.allocation %}{{ state.allocation.vehicle_no }}
+                    {% elif state.candidate_ambulance %}{{ state.candidate_ambulance.vehicle_no }}
+                    {% else %}No vehicle{% endif %}
+                </span>
+            </div>
+
+            <div class="p-4 text-xs font-mono space-y-2">
+                {% if state.allocation %}
+                <div class="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded">
+                    <div><span class="text-slate-400">vehicle_no:</span> <span class="font-bold text-slate-900">{{ state.allocation.vehicle_no }}</span></div>
+                    <div><span class="text-slate-400">type:</span> <span class="font-bold text-purple-700">{{ state.allocation.amb_type }}</span></div>
+                </div>
+
+                <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-500 font-sans block">Column: operational_status</span>
+                        <span class="text-sm font-bold">{{ state.allocation.amb_status }}</span>
+                    </div>
+                    <span class="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-sans font-bold">
+                        <i class="fa-solid fa-lock mr-1"></i> RESERVED LIVE
+                    </span>
+                </div>
+                {% elif state.candidate_ambulance %}
+                <div class="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded">
+                    <div><span class="text-slate-400">Candidate Vehicle:</span> <span class="font-bold text-slate-900">{{ state.candidate_ambulance.vehicle_no }}</span></div>
+                    <div><span class="text-slate-400">type:</span> <span class="font-bold text-purple-700">{{ state.candidate_ambulance.type }}</span></div>
+                </div>
+                <div class="p-3 bg-slate-100 border border-slate-200 text-slate-700 rounded-lg flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-500 font-sans block">Column: operational_status</span>
+                        <span class="text-sm font-bold text-emerald-600">{{ state.candidate_ambulance.operational_status }}</span>
+                    </div>
+                    <span class="text-[10px] font-sans text-slate-500">Awaiting lock...</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-500 font-sans">
+                <strong>What to show teacher:</strong> <em>"Notice the vehicle's <code>operational_status</code> was 'Available', and becomes 'Dispatched', preventing other calls from using it."</em>
+            </div>
+        </div>
+
+        <!-- Table 3: BED Row -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+            <div class="p-4 border-b border-slate-200 bg-slate-50/70 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    <h3 class="text-xs font-bold text-slate-900 font-mono">
+                        TABLE: BED 
+                        {% if state.allocation %}(Bed #{{ state.allocation.bed_id }}: {{ state.allocation.bed_number }})
+                        {% elif state.candidate_bed %}(Candidate Bed #{{ state.candidate_bed.bed_id }}: {{ state.candidate_bed.bed_number }}){% endif %}
+                    </h3>
+                </div>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">
+                    {% if state.allocation %}{{ state.allocation.hospital_name }}
+                    {% elif state.candidate_bed %}{{ state.candidate_bed.hospital_name }}
+                    {% else %}No bed{% endif %}
+                </span>
+            </div>
+
+            <div class="p-4 text-xs font-mono space-y-2">
+                {% if state.allocation %}
+                <div class="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded">
+                    <div><span class="text-slate-400">Hospital:</span> <span class="font-bold text-slate-900">{{ state.allocation.hospital_name }}</span></div>
+                    <div><span class="text-slate-400">Bed Type:</span> <span class="font-bold text-blue-700">{{ state.allocation.bed_type }}</span></div>
+                </div>
+
+                <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-500 font-sans block">Column: is_occupied</span>
+                        <span class="text-sm font-bold text-rose-600">{{ state.allocation.bed_occupied }} (OCCUPIED / RESERVED)</span>
+                    </div>
+                    <span class="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-sans font-bold">
+                        <i class="fa-solid fa-lock mr-1"></i> MUTATED 0 &rarr; 1
+                    </span>
+                </div>
+                {% elif state.candidate_bed %}
+                <div class="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded">
+                    <div><span class="text-slate-400">Hospital:</span> <span class="font-bold text-slate-900">{{ state.candidate_bed.hospital_name }}</span></div>
+                    <div><span class="text-slate-400">Bed Type:</span> <span class="font-bold text-blue-700">{{ state.candidate_bed.bed_type }}</span></div>
+                </div>
+                <div class="p-3 bg-slate-100 border border-slate-200 text-slate-700 rounded-lg flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-500 font-sans block">Column: is_occupied</span>
+                        <span class="text-sm font-bold text-emerald-600">{{ state.candidate_bed.is_occupied }} (VACANT)</span>
+                    </div>
+                    <span class="text-[10px] font-sans text-slate-500">Awaiting reservation...</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-500 font-sans">
+                <strong>What to show teacher:</strong> <em>"Notice column <code>is_occupied</code> was 0 (Vacant), and atomically changed to 1 (Occupied), dynamically lowering available capacity in <code>vw_hospital_bed_occupancy</code>."</em>
+            </div>
+        </div>
+
+        <!-- Table 4: RESOURCE_ALLOCATION Row -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+            <div class="p-4 border-b border-slate-200 bg-slate-50/70 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                    <h3 class="text-xs font-bold text-slate-900 font-mono">TABLE: RESOURCE_ALLOCATION</h3>
+                </div>
+                <span class="text-[10px] bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded font-mono font-bold">
+                    Associative Ternary Record
+                </span>
+            </div>
+
+            <div class="p-4 text-xs font-mono space-y-2">
+                {% if state.allocation %}
+                <div class="p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-1 text-[11px]">
+                    <div class="flex justify-between"><span class="text-slate-500">allocation_id [PK]:</span> <span class="font-bold text-purple-900">#{{ state.allocation.allocation_id }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">emergency_id [FK]:</span> <span class="font-bold text-slate-900">#{{ state.allocation.emergency_id }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">ambulance_id [FK]:</span> <span class="font-bold text-emerald-800">#{{ state.allocation.ambulance_id }} ({{ state.allocation.vehicle_no }})</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">hospital_id [FK]:</span> <span class="font-bold text-blue-800">#{{ state.allocation.hospital_id }} ({{ state.allocation.hospital_name }})</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">bed_id [FK]:</span> <span class="font-bold text-blue-800">#{{ state.allocation.bed_id }} ({{ state.allocation.bed_number }})</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">dispatch_time:</span> <span class="text-slate-700">{{ state.allocation.dispatch_time }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">status:</span> <span class="font-bold text-purple-700">{{ state.allocation.status }}</span></div>
+                </div>
+                {% else %}
+                <div class="p-6 bg-slate-50 border border-dashed border-slate-300 rounded-lg text-center text-slate-400">
+                    <i class="fa-solid fa-link-slash text-2xl mb-1"></i>
+                    <div>No associative record created yet.</div>
+                    <div class="text-[10px] mt-0.5">Will be created atomically upon ACID Dispatch.</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-500 font-sans">
+                <strong>What to show teacher:</strong> <em>"This row links the three parent primary keys (emergency, ambulance, hospital) into our associative relation."</em>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Table 5: Trigger Audit History Stream for this Emergency -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 bg-slate-50/70 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-bolt text-rose-500 text-xs"></i>
+                <h3 class="text-xs font-bold text-slate-900 font-mono">TABLE: EMERGENCY_STATUS_HISTORY (Automated Trigger Records)</h3>
+            </div>
+            <span class="text-[10px] text-slate-500 font-mono">{{ state.history|length }} Log(s) Recorded</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600 font-mono">
+                <thead class="bg-slate-100 text-slate-800 uppercase font-semibold text-[10px]">
+                    <tr>
+                        <th class="py-2.5 px-3">History ID</th>
+                        <th class="py-2.5 px-3">Status State</th>
+                        <th class="py-2.5 px-3">Logged By</th>
+                        <th class="py-2.5 px-3">Changed At</th>
+                        <th class="py-2.5 px-3 font-sans">Trigger Remarks &amp; Transition Log</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for h in state.history %}
+                    <tr class="hover:bg-slate-50 {% if loop.first %}bg-amber-50/60{% endif %}">
+                        <td class="py-2 px-3 font-bold text-slate-900">#{{ h.history_id }}</td>
+                        <td class="py-2 px-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold 
+                                {% if h.status_state == 'Reported' %} bg-rose-100 text-rose-800
+                                {% elif h.status_state == 'Dispatched' %} bg-amber-100 text-amber-800
+                                {% elif h.status_state == 'In-Transit' %} bg-sky-100 text-sky-800
+                                {% elif h.status_state == 'Admitted' %} bg-indigo-100 text-indigo-800
+                                {% else %} bg-emerald-100 text-emerald-800 {% endif %}">
+                                {{ h.status_state }}
+                            </span>
+                        </td>
+                        <td class="py-2 px-3 text-slate-600">{{ h.updated_by }}</td>
+                        <td class="py-2 px-3 text-slate-400 text-[10px]">{{ h.changed_at }}</td>
+                        <td class="py-2 px-3 font-sans text-slate-800">
+                            {{ h.remarks }}
+                            {% if loop.first %}<span class="ml-2 text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded">&larr; LATEST TRIGGER FIRING</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-500 font-sans">
+            <strong>What to show teacher:</strong> <em>"We did NOT write an INSERT statement for this history table. The database engine's <code>trg_emergency_status_update</code> trigger fired automatically when <code>EMERGENCY.status</code> changed, creating this exact row with the old and new states!"</em>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

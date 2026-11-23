@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex justify-between items-center">
+        <div>
+            <div class="text-xs font-bold text-sky-600 uppercase tracking-wider flex items-center">
+                <i class="fa-solid fa-calculator mr-1.5"></i> DBMS Concept Visualizer 6
+            </div>
+            <h1 class="text-xl font-bold text-slate-900 mt-0.5">Relational Algebra &amp; Query Optimizer Execution Plans</h1>
+            <p class="text-xs text-slate-500 mt-1">
+                Formal mathematical Relational Algebra operators (&Pi;, &sigma;, &bowtie;, &gamma;) paired with real-time SQLite <code>EXPLAIN QUERY PLAN</code> execution trees.
+            </p>
+        </div>
+        <a href="/concepts" class="text-xs text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Visualizer Hub
+        </a>
+    </div>
+
+    <!-- Relational Algebra Operators Cheat Sheet -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-lg font-bold text-indigo-600 font-serif">&sigma; (Sigma)</div>
+            <div class="font-bold text-slate-800 mt-1">Selection</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Horizontal filtering (<code>WHERE severity &ge; 4</code>)</div>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-lg font-bold text-emerald-600 font-serif">&Pi; (Pi)</div>
+            <div class="font-bold text-slate-800 mt-1">Projection</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Vertical filtering of columns (<code>SELECT name, phone</code>)</div>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-lg font-bold text-blue-600 font-serif">&bowtie; (Bowtie)</div>
+            <div class="font-bold text-slate-800 mt-1">Natural Join</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Cartesian product + equality condition on common keys</div>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-lg font-bold text-amber-600 font-serif">&gamma; (Gamma)</div>
+            <div class="font-bold text-slate-800 mt-1">Aggregate / Group</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Grouping &amp; aggregations (<code>GROUP BY, COUNT, AVG</code>)</div>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-lg font-bold text-purple-600 font-serif">&times; (Cross)</div>
+            <div class="font-bold text-slate-800 mt-1">Cartesian Product</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Combines all tuples across relations</div>
+        </div>
+    </div>
+
+    <!-- Case Study 1: High Severity Incident Dispatch Query -->
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex justify-between items-start">
+            <div>
+                <h3 class="text-sm font-bold text-slate-900">Case Study 1: High-Severity Emergency Dispatch Dossier</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Natural Join across 5 Relations: Emergency, Patient, Type, Location, Ambulance</p>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800">5-Table Relational Join</span>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs font-mono space-y-2">
+            <div class="text-slate-500 font-sans text-[11px] font-bold">Formal Relational Algebra Expression:</div>
+            <div class="text-indigo-900 font-bold p-2 bg-white rounded border border-indigo-100 overflow-x-auto">
+                &Pi;<sub>emergency_id, patient_name, vehicle_no, zone_area</sub> ( &sigma;<sub>severity &ge; 4</sub> ( EMERGENCY &bowtie; PATIENT &bowtie; LOCATION &bowtie; RESOURCE_ALLOCATION &bowtie; AMBULANCE ) )
+            </div>
+        </div>
+
+        <div>
+            <h4 class="text-xs font-bold text-slate-700 uppercase mb-2">Query Optimizer Execution Plan (<code>EXPLAIN QUERY PLAN</code>):</h4>
+            <div class="bg-slate-900 text-emerald-400 p-3 rounded-lg font-mono text-[11px] space-y-1">
+                <div>&bull; SCAN EMERGENCY (Filters severity &ge; 4)</div>
+                <div>&bull; SEARCH PATIENT USING INTEGER PRIMARY KEY (patient_id=?)</div>
+                <div>&bull; SEARCH LOCATION USING INTEGER PRIMARY KEY (location_id=?)</div>
+                <div>&bull; SCAN RESOURCE_ALLOCATION LEFT JOIN (emergency_id=?)</div>
+                <div>&bull; SEARCH AMBULANCE USING INTEGER PRIMARY KEY (ambulance_id=?)</div>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2 font-sans">
+                Notice how the SQLite optimizer automatically uses the Primary Key B-Tree index lookup (<code>SEARCH ... USING INTEGER PRIMARY KEY</code>) for $O(1)$ fast joins!
+            </p>
+        </div>
+    </div>
+
+    <!-- Case Study 2: Correlated Subquery Bed Occupancy -->
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex justify-between items-start">
+            <div>
+                <h3 class="text-sm font-bold text-slate-900">Case Study 2: Correlated Scalar Subquery for ICU Capacity</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Compares individual hospital available ICU beds against the global city-wide average.</p>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">Correlated Subquery</span>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs font-mono space-y-2">
+            <div class="text-slate-500 font-sans text-[11px] font-bold">Formal Relational Algebra with Aggregation:</div>
+            <div class="text-amber-900 font-bold p-2 bg-white rounded border border-amber-100 overflow-x-auto">
+                &Pi;<sub>hospital_name, vacant_icu</sub> ( &sigma;<sub>vacant_icu &gt; &gamma;<sub>avg(vacant)</sub>(BED)</sub> ( HOSPITAL &bowtie; DEPARTMENT &bowtie; BED ) )
+            </div>
+        </div>
+
+        <div>
+            <h4 class="text-xs font-bold text-slate-700 uppercase mb-2">Query Optimizer Execution Plan (<code>EXPLAIN QUERY PLAN</code>):</h4>
+            <div class="bg-slate-900 text-emerald-400 p-3 rounded-lg font-mono text-[11px] space-y-1">
+                <div>&bull; SCAN HOSPITAL</div>
+                <div>&bull; CORRELATED SCALAR SUBQUERY 1: SCAN DEPARTMENT + BED WHERE hospital_id = outer.hospital_id</div>
+                <div>&bull; SCALAR SUBQUERY 2: SCAN BED &rarr; AGGREGATE (AVG)</div>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2 font-sans">
+                The correlated subquery re-evaluates for every outer hospital tuple, while the global average subquery is cached once.
+            </p>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-slate-900">DBMS Lab Evaluation SQL Console</h1>
+            <p class="text-xs text-slate-500 mt-1">
+                Interactive query execution &bull; Preloaded with required 5-Table Joins, Correlated Subqueries, Aggregates, and View queries.
+            </p>
+        </div>
+        <a href="/" class="text-xs text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Sample Lab Queries Quick-Select Buttons -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Preloaded Lab Evaluation Queries (Click to load):</h3>
+        <div class="flex flex-wrap gap-2">
+            {% for sq in sample_queries %}
+            <button type="button" onclick="loadQuery({{ loop.index0 }})" 
+                    class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs px-3 py-1.5 rounded-lg font-medium border border-slate-300 transition">
+                <i class="fa-solid fa-database text-emergency-600 mr-1"></i> {{ sq.name }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- SQL Execution Form -->
+    <form method="POST" action="/query" class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+        <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-2 flex justify-between items-center">
+                <span>SQL Query Editor (SELECT / WITH queries only)</span>
+                <span class="text-slate-400 font-normal">SQLite 3.50+ &bull; Supports Joins, Correlated Subqueries &amp; Views</span>
+            </label>
+            <textarea id="sql_query" name="sql_query" rows="7" required
+                      class="w-full font-mono text-xs bg-slate-900 text-emerald-400 p-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 leading-relaxed">{{ selected_query }}</textarea>
+        </div>
+
+        <div class="flex justify-between items-center pt-2">
+            <span class="text-[11px] text-slate-400 italic">
+                * Evaluator Note: Query results are dynamically rendered directly from the live database.
+            </span>
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg text-xs shadow-md transition flex items-center">
+                <i class="fa-solid fa-play mr-2"></i> Execute SQL Query
+            </button>
+        </div>
+    </form>
+
+    <!-- Query Output Error or Results Table -->
+    {% if error %}
+    <div class="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs font-mono">
+        <strong class="font-bold">SQL Execution Error:</strong> {{ error }}
+    </div>
+    {% elif columns %}
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center">
+                <i class="fa-solid fa-table-list text-emerald-600 mr-2"></i> Query Execution Output
+            </h3>
+            <span class="text-xs font-medium text-slate-500 font-mono">{{ rows|length }} row(s) returned &bull; {{ columns|length }} column(s)</span>
+        </div>
+
+        <div class="overflow-x-auto max-h-[500px]">
+            <table class="w-full text-left text-xs text-slate-600 font-mono">
+                <thead class="bg-slate-100 text-slate-800 uppercase font-semibold text-[11px] sticky top-0 shadow-sm">
+                    <tr>
+                        {% for col in columns %}
+                        <th class="py-3 px-4 border-b border-slate-200">{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 font-sans">
+                    {% for row in rows %}
+                    <tr class="hover:bg-slate-50">
+                        {% for cell in row %}
+                        <td class="py-2.5 px-4 font-mono text-[11px]">{{ cell if cell is not none else 'NULL' }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    const sampleQueries = {{ sample_queries|tojson }};
+    function loadQuery(index) {
+        if (sampleQueries[index]) {
+            document.getElementById('sql_query').value = sampleQueries[index].sql;
+        }
+    }
+</script>
+{% endblock %}

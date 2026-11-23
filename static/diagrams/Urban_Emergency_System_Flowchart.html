@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>System Flowchart - Urban Emergency Response System</title>
+<style>
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #ffffff;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  svg {
+    display: block;
+    margin: 0 auto;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    border-radius: 8px;
+  }
+  .title-text { font-size: 24px; font-weight: 800; fill: #0F172A; text-anchor: middle; }
+  .subtitle-text { font-size: 13px; font-weight: 600; fill: #64748B; text-anchor: middle; }
+  
+  /* Phase Header Boxes */
+  .phase-header-1 { fill: #EFF6FF; stroke: #3B82F6; stroke-width: 2; rx: 6; ry: 6; }
+  .phase-header-2 { fill: #ECFDF5; stroke: #10B981; stroke-width: 2; rx: 6; ry: 6; }
+  .phase-title { font-size: 15px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
+  
+  /* Flowchart Process Boxes */
+  .proc-box { fill: #FFFFFF; stroke: #1E293B; stroke-width: 2; rx: 4; ry: 4; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
+  .proc-title { font-size: 13.5px; font-weight: 800; fill: #0F172A; text-anchor: middle; }
+  .proc-desc { font-size: 11.5px; font-weight: 500; fill: #475569; text-anchor: middle; }
+  
+  /* Decision Diamonds */
+  .decision-diamond { fill: #FEF3C7; stroke: #D97706; stroke-width: 2.2; }
+  .decision-text { font-size: 12.5px; font-weight: 800; fill: #78350F; text-anchor: middle; dominant-baseline: middle; }
+
+  /* Start/End Pills */
+  .terminal-start { fill: #10B981; stroke: #047857; stroke-width: 2.5; rx: 25; ry: 25; }
+  .terminal-end { fill: #EF4444; stroke: #B91C1C; stroke-width: 2.5; rx: 25; ry: 25; }
+  .terminal-text { font-size: 14px; font-weight: 800; fill: #FFFFFF; text-anchor: middle; dominant-baseline: middle; }
+  
+  /* Connectors */
+  .connector-circle { fill: #6366F1; stroke: #4338CA; stroke-width: 2; }
+  .connector-text { font-size: 14px; font-weight: 800; fill: #FFFFFF; text-anchor: middle; dominant-baseline: middle; }
+  
+  /* Arrow Lines */
+  .flow-arrow { stroke: #1E293B; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+  .flow-arrow-dashed { stroke: #DC2626; stroke-width: 2; stroke-dasharray: 5,4; fill: none; marker-end: url(#arrowhead-red); }
+  
+  /* Branch Labels */
+  .branch-yes { font-size: 12px; font-weight: 800; fill: #059669; }
+  .branch-no { font-size: 12px; font-weight: 800; fill: #DC2626; }
+</style>
+</head>
+<body>
+
+<svg width="1700" height="2050" viewBox="0 0 1700 2050" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <!-- Arrowhead definitions -->
+    <marker id="arrowhead" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#1E293B" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#DC2626" />
+    </marker>
+  </defs>
+
+  <!-- Title Block -->
+  <text x="850" y="55" class="title-text">URBAN EMERGENCY RESPONSE & RESOURCE ALLOCATION SYSTEM</text>
+  <text x="850" y="85" class="subtitle-text">Figure 2: End-to-End System Operational Lifecycle Flowchart (Intake, ACID Resource Allocation, Triggers & Reporting)</text>
+
+  <!-- ===================================================================== -->
+  <!-- PHASE I: INTAKE & VERIFICATION (Left Column) -->
+  <!-- ===================================================================== -->
+  <!-- Phase I Boundary Container -->
+  <rect x="80" y="120" width="720" height="1820" fill="#F8FAFC" stroke="#94A3B8" stroke-width="2" stroke-dasharray="8,6" rx="10" ry="10"/>
+  
+  <!-- Phase Header -->
+  <rect x="180" y="145" width="520" height="45" class="phase-header-1"/>
+  <text x="440" y="172" class="phase-title" fill="#1E40AF">PHASE I: INTAKE &amp; CLINICAL VERIFICATION</text>
+
+  <!-- 1. START Terminal -->
+  <rect x="360" y="240" width="160" height="50" class="terminal-start"/>
+  <text x="440" y="268" class="terminal-text">START</text>
+
+  <!-- Arrow to Step 1 -->
+  <line x1="440" y1="290" x2="440" y2="360" class="flow-arrow"/>
+
+  <!-- Step 1: Emergency Incident Reported -->
+  <rect x="230" y="360" width="420" height="80" class="proc-box"/>
+  <text x="440" y="392" class="proc-title">1. Emergency Incident Reported</text>
+  <text x="440" y="415" class="proc-desc">Citizen emergency intake via 112 helpline / automated caller interface</text>
+
+  <!-- Arrow to Step 2 -->
+  <line x1="440" y1="440" x2="440" y2="510" class="flow-arrow"/>
+
+  <!-- Step 2: Record Emergency Details -->
+  <rect x="230" y="510" width="420" height="85" class="proc-box"/>
+  <text x="440" y="542" class="proc-title">2. Record Emergency Details</text>
+  <text x="440" y="565" class="proc-desc">Atomically insert victim demographics, phone, location into</text>
+  <text x="440" y="582" class="proc-desc font-mono" style="font-weight:700; fill:#1E40AF;">PATIENT, EMERGENCY, and LOCATION relations</text>
+
+  <!-- Arrow to Step 3 -->
+  <line x1="440" y1="595" x2="440" y2="670" class="flow-arrow"/>
+
+  <!-- Step 3: Check Severity & Requirements -->
+  <rect x="230" y="670" width="420" height="85" class="proc-box"/>
+  <text x="440" y="702" class="proc-title">3. Check Severity &amp; Clinical Needs</text>
+  <text x="440" y="725" class="proc-desc">Query EMERGENCY_TYPE (Severity 1–5, Priority Rank)</text>
+  <text x="440" y="742" class="proc-desc">Determine vehicle apparatus requirement (BLS vs. ALS Ventilator)</text>
+
+  <!-- Arrow to Decision 1 -->
+  <line x1="440" y1="755" x2="440" y2="850" class="flow-arrow"/>
+
+  <!-- Decision 1: Ambulance Available? -->
+  <polygon points="440,850 590,920 440,990 290,920" class="decision-diamond"/>
+  <text x="440" y="915" class="decision-text">Ambulance</text>
+  <text x="440" y="935" class="decision-text">Available?</text>
+
+  <!-- Decision 1 NO Branch: Loop/Retry -->
+  <path d="M 590 920 L 730 920 L 730 870" class="flow-arrow-dashed"/>
+  <text x="610" y="910" class="branch-no">NO</text>
+  <rect x="650" y="810" width="130" height="60" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.5" rx="4"/>
+  <text x="715" y="835" font-size="11px" font-weight="800" fill="#991B1B" text-anchor="middle">Queue Call /</text>
+  <text x="715" y="852" font-size="11px" font-weight="700" fill="#991B1B" text-anchor="middle">Fleet Escalation</text>
+  <path d="M 715 810 L 715 712 L 650 712" class="flow-arrow-dashed"/>
+
+  <!-- Decision 1 YES Branch: Down to Bed Check -->
+  <line x1="440" y1="990" x2="440" y2="1080" class="flow-arrow"/>
+  <text x="455" y="1030" class="branch-yes">YES (Vehicle Allocated)</text>
+
+  <!-- Decision 2: Hospital Bed Available? -->
+  <polygon points="440,1080 590,1150 440,1220 290,1150" class="decision-diamond"/>
+  <text x="440" y="1145" class="decision-text">Hospital Bed</text>
+  <text x="440" y="1165" class="decision-text">Available?</text>
+
+  <!-- Decision 2 NO Branch: Alternative Bed / Escalation -->
+  <path d="M 590 1150 L 730 1150 L 730 1100" class="flow-arrow-dashed"/>
+  <text x="610" y="1140" class="branch-no">NO</text>
+  <rect x="650" y="1040" width="130" height="60" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.5" rx="4"/>
+  <text x="715" y="1065" font-size="11px" font-weight="800" fill="#991B1B" text-anchor="middle">Query Secondary</text>
+  <text x="715" y="1082" font-size="11px" font-weight="700" fill="#991B1B" text-anchor="middle">Trauma Center</text>
+  <path d="M 715 1040 L 715 970 L 520 970" class="flow-arrow-dashed"/>
+
+  <!-- Decision 2 YES Branch: Down to Connector A -->
+  <line x1="440" y1="1220" x2="440" y2="1320" class="flow-arrow"/>
+  <text x="455" y="1265" class="branch-yes">YES (Bed Vacant)</text>
+
+  <!-- Connector (A) at bottom of Phase I -->
+  <circle cx="440" cy="1350" r="28" class="connector-circle"/>
+  <text x="440" y="1355" class="connector-text">A</text>
+
+  <!-- ===================================================================== -->
+  <!-- PHASE II: ALLOCATION & AUDIT (Right Column) -->
+  <!-- ===================================================================== -->
+  <!-- Phase II Boundary Container -->
+  <rect x="880" y="120" width="740" height="1820" fill="#F0FDF4" stroke="#86EFAC" stroke-width="2" stroke-dasharray="8,6" rx="10" ry="10"/>
+
+  <!-- Phase Header -->
+  <rect x="990" y="145" width="520" height="45" class="phase-header-2"/>
+  <text x="1250" y="172" class="phase-title" fill="#065F46">PHASE II: ATOMIC ALLOCATION &amp; AUDIT TRAIL</text>
+
+  <!-- Connector (A) at top of Phase II -->
+  <circle cx="1250" cy="250" r="28" class="connector-circle"/>
+  <text x="1250" y="255" class="connector-text">A</text>
+
+  <!-- Connecting dashed line across phases -->
+  <path d="M 468 1350 L 840 1350 L 840 250 L 1222 250" fill="none" stroke="#6366F1" stroke-width="2.5" stroke-dasharray="6,5"/>
+  <text x="850" y="235" font-size="12px" font-weight="800" fill="#4F46E5" text-anchor="middle">Phase Handoff (A)</text>
+
+  <!-- Arrow to Step 4 -->
+  <line x1="1250" y1="278" x2="1250" y2="350" class="flow-arrow"/>
+
+  <!-- Step 4: Allocate Suitable Resources -->
+  <rect x="1040" y="350" width="420" height="85" class="proc-box"/>
+  <text x="1250" y="382" class="proc-title">4. Allocate Suitable Resources</text>
+  <text x="1250" y="405" class="proc-desc">Pair verified ALS/BLS Ambulance with onboard life-support</text>
+  <text x="1250" y="422" class="proc-desc">Reserve ICU or General Trauma Bed at eligible receiving hospital</text>
+
+  <!-- Arrow to Step 5 -->
+  <line x1="1250" y1="435" x2="1250" y2="510" class="flow-arrow"/>
+
+  <!-- Step 5: Atomic SQL Transaction COMMIT -->
+  <rect x="1040" y="510" width="420" height="95" class="proc-box" style="stroke:#059669; stroke-width:2.5; fill:#ECFDF5;"/>
+  <text x="1250" y="542" class="proc-title" style="fill:#065F46;">5. Atomic SQL Transaction COMMIT</text>
+  <text x="1250" y="565" class="proc-desc font-mono" style="font-weight:700; fill:#047857;">BEGIN IMMEDIATE TRANSACTION;</text>
+  <text x="1250" y="582" class="proc-desc">SET Ambulance = 'Dispatched', Bed = Occupied, Insert ALLOCATION</text>
+  <text x="1250" y="598" class="proc-desc font-mono" style="font-weight:700; fill:#047857;">COMMIT; (Guarantees ACID - Zero Race Conditions)</text>
+
+  <!-- Arrow to Step 6 -->
+  <line x1="1250" y1="605" x2="1250" y2="680" class="flow-arrow"/>
+
+  <!-- Step 6: Dispatch Ambulance & Care -->
+  <rect x="1040" y="680" width="420" height="85" class="proc-box"/>
+  <text x="1250" y="712" class="proc-title">6. Dispatch Ambulance &amp; Clinical Care</text>
+  <text x="1250" y="735" class="proc-desc">Update EMERGENCY status = 'In-Transit'</text>
+  <text x="1250" y="752" class="proc-desc">Paramedics deploy telemetry and stabilize victim during transit</text>
+
+  <!-- Arrow to Step 7 -->
+  <line x1="1250" y1="765" x2="1250" y2="840" class="flow-arrow"/>
+
+  <!-- Step 7: Hospital Handover & Triage -->
+  <rect x="1040" y="840" width="420" height="85" class="proc-box"/>
+  <text x="1250" y="872" class="proc-title">7. Hospital Handover &amp; Emergency Triage</text>
+  <text x="1250" y="895" class="proc-desc">Patient admitted into reserved hospital bed</text>
+  <text x="1250" y="912" class="proc-desc">Update RESOURCE_ALLOCATION arrival_time; response concluded</text>
+
+  <!-- Arrow to Step 8 -->
+  <line x1="1250" y1="925" x2="1250" y2="1000" class="flow-arrow"/>
+
+  <!-- Step 8: Trigger Log Status & Free Units -->
+  <rect x="1040" y="1000" width="420" height="95" class="proc-box" style="stroke:#DC2626; stroke-width:2.2; fill:#FEF2F2;"/>
+  <text x="1250" y="1030" class="proc-title" style="fill:#991B1B;">8. Trigger: Log Status &amp; Free Units</text>
+  <text x="1250" y="1052" class="proc-desc font-mono" style="font-weight:700; fill:#B91C1C;">AFTER UPDATE TRIGGER trg_emergency_status_update</text>
+  <text x="1250" y="1070" class="proc-desc">Engine writes chronological audit into EMERGENCY_STATUS_HISTORY</text>
+  <text x="1250" y="1086" class="proc-desc">Frees ambulance operational_status back to 'Available'</text>
+
+  <!-- Arrow to Step 9 -->
+  <line x1="1250" y1="1095" x2="1250" y2="1170" class="flow-arrow"/>
+
+  <!-- Step 9: Generate Analytical Reports -->
+  <rect x="1040" y="1170" width="420" height="85" class="proc-box"/>
+  <text x="1250" y="1202" class="proc-title">9. Generate Analytical Reports &amp; KPIs</text>
+  <text x="1250" y="1225" class="proc-desc">Execute SQL analytical views (vw_hospital_bed_occupancy,</text>
+  <text x="1250" y="1242" class="proc-desc">vw_ambulance_fleet_status, vw_response_latency_analytics)</text>
+
+  <!-- Arrow to END -->
+  <line x1="1250" y1="1255" x2="1250" y2="1330" class="flow-arrow"/>
+
+  <!-- END Terminal -->
+  <rect x="1170" y="1330" width="160" height="50" class="terminal-end"/>
+  <text x="1250" y="1358" class="terminal-text">END</text>
+
+  <!-- Bottom Summary Banner -->
+  <rect x="80" y="1850" width="1540" height="80" fill="#1E293B" rx="8" ry="8"/>
+  <text x="850" y="1885" font-size="14px" font-weight="800" fill="#F8FAFC" text-anchor="middle">
+    ACID TRANSACTION CONCURRENCY &bull; 3NF NORMALIZED RELATIONAL REPOSITORY &bull; AUTOMATED TRIGGER AUDITING
+  </text>
+  <text x="850" y="1910" font-size="12px" font-weight="600" fill="#94A3B8" text-anchor="middle">
+    Designed for Department of CSE &amp; IT &bull; Jaypee Institute of Information Technology, Noida-62
+  </text>
+
+</svg>
+
+</body>
+</html>
